@@ -1,0 +1,20 @@
+{
+  "name": "Newmanator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "cheerio": "^1.1.2",
+    "nodemailer": "^7.0.5"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}
