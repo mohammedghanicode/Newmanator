@@ -25,26 +25,20 @@ Just **run one PowerShell script**, pick your zipped Newman reports, — and a n
 
 🖥️ How It Works
 
+```
 1. Run the PowerShell script:
-   ```bash
-   powershell
-   ./run-reporter.ps1
-   ```
+powershell
+./run-reporter.ps1
 2. Browse for the zip file containing the newman reports and click OK
 3. A browser window will open containing the collated report
-   ```
-
-   ```
+```
 
 ---
 
-🧩 Installation
-
-```bash
+⚙️ Installation
 git clone https://github.com/mohammedghanicode/Newmanator.git
 cd Newmanator
 npm install
-```
 
 🧪 Usage
 Combine multiple reports:
