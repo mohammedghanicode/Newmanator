@@ -9,7 +9,7 @@
 If you use **Postman + Newman** for API testing, you already know the pain of juggling multiple JSON or HTML reports.  
 **Newmanator** takes care of that — automatically.
 
-Just **run one PowerShell script**, pick your zipped Newman reports, and boom 💥 — a neat `summary.html` report opens right in your browser.
+Just **run one PowerShell script**, pick your zipped Newman reports, — and a neat `summary.html` report opens right in your browser.
 
 ---
 
@@ -26,11 +26,15 @@ Just **run one PowerShell script**, pick your zipped Newman reports, and boom �
 🖥️ How It Works
 
 1. Run the PowerShell script:
-   ```powershell
+   ```bash
+   powershell
    ./run-reporter.ps1
    ```
 2. Browse for the zip file containing the newman reports and click OK
 3. A browser window will open containing the collated report
+   ```
+
+   ```
 
 ---
 
