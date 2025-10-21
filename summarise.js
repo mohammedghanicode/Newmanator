@@ -8,6 +8,11 @@ const ENABLE_HTML_DETAILS_FALLBACK = true;
 const HTML_DETAILS_MAX_ROWS = 5000;   // cap HTML-parsed rows to keep memory stable
 const JSON_DETAILS_MAX_ROWS = 20000;  // cap JSON rows just in case
 
+// Exclude patterns: tests/messages that should be ignored entirely
+const EXCLUDE_PATTERNS = [
+  /Response time is below threshold/i
+];
+
 /* ============================== helpers ============================== */
 function toNumber(val, fallback = 0) {
   if (val == null) return fallback;
@@ -74,10 +79,26 @@ const NOISE_MESSAGE_REGEXES = [
 function isNoiseRow(test, message) {
   const t = String(test || "").trim();
   const m = String(message || "").trim();
-  if (NOISE_ASSERTION_NAMES.has(t.toLowerCase())) return true;
-  for (const rx of NOISE_MESSAGE_REGEXES) {
-    if (rx.test(m)) return true;
+
+  // Exclude any test/message that matches configured exclude patterns
+  for (const rx of EXCLUDE_PATTERNS) {
+    if (rx.test(t) || rx.test(m)) {
+      return true;
+    }
   }
+
+  // Known noise: header/assertion names
+  if (NOISE_ASSERTION_NAMES.has(t.toLowerCase())) {
+    return true;
+  }
+
+  // Noise by message regexes
+  for (const rx of NOISE_MESSAGE_REGEXES) {
+    if (rx.test(m)) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -453,6 +474,62 @@ function createSummaryHtml(collections) {
     </table>
   `;
 
+  // --- moved: define renderFailedRequests before it's used ---
+  function renderFailedRequests(list, hrefBase) {
+    if (!list || list.length === 0) {
+      return `<div class="note">No detailed assertion rows found for failed requests.</div>`;
+    }
+
+    // request -> Map(test||msg -> { test, message, count }) and per-request anchor
+    const byReq = new Map();
+    const reqHref = new Map();
+    for (const row of list) {
+      const req = row.request || "Unknown request";
+      const test = row.test || "Unknown assertion";
+      const msg = row.message || "Error";
+      if (isNoiseRow(test, msg)) continue;
+
+      if (row.href && !reqHref.has(req)) reqHref.set(req, row.href);
+
+      const key = `${test}||${msg}`;
+      if (!byReq.has(req)) byReq.set(req, new Map());
+      const m = byReq.get(req);
+      if (!m.has(key)) m.set(key, { test, message: msg, count: 0 });
+      m.get(key).count += 1;
+    }
+
+    if (byReq.size === 0) return `<div class="note">No failed request details after filtering.</div>`;
+
+    let html = "";
+    const base = hrefBase ? escapeHtml(String(hrefBase).replace(/\\\\/g, '/')) : null;
+    for (const [req, map] of byReq) {
+      const total = Array.from(map.values()).reduce((s, r) => s + r.count, 0);
+      const checks = Array.from(map.values()).map((r) => `
+        <li>
+          <div class="assert">${escapeHtml(r.test)} <span class="count">×${r.count}</span></div>
+          <pre class="msg">${escapeHtml(r.message)}</pre>
+        </li>
+      `).join("");
+
+      const anchor = reqHref.get(req);
+      const href = base ? (anchor ? `${base}${escapeHtml(anchor)}` : base) : null;
+      html += `
+        <details class="req" open>
+          <summary>
+            <span>${href ? `<a href="${href}" target="_blank" rel="noopener">${escapeHtml(req)}</a>` : escapeHtml(req)}</span>
+            <span class="count">${total} failing check(s)</span>
+          </summary>
+          <ul class="checks">
+            ${checks}
+          </ul>
+        </details>
+      `;
+    }
+
+    return html;
+  }
+  // --- end moved function ---
+  
   // Details: ONLY collections with failures; ONLY failed requests inside
   const detailBlocks = collections
     .filter((c) => (c.__failed_normalized || 0) > 0)
@@ -541,61 +618,6 @@ function createSummaryHtml(collections) {
       </body>
     </html>
   `;
-
-  // Group rows by request, then list failing assertions per request (dedup with counts)
-  function renderFailedRequests(list, hrefBase) {
-    if (!list || list.length === 0) {
-      return `<div class="note">No detailed assertion rows found for failed requests.</div>`;
-    }
-
-    // request -> Map(test||msg -> { test, message, count }) and per-request anchor
-    const byReq = new Map();
-    const reqHref = new Map();
-    for (const row of list) {
-      const req = row.request || "Unknown request";
-      const test = row.test || "Unknown assertion";
-      const msg = row.message || "Error";
-      if (isNoiseRow(test, msg)) continue;
-
-      if (row.href && !reqHref.has(req)) reqHref.set(req, row.href);
-
-      const key = `${test}||${msg}`;
-      if (!byReq.has(req)) byReq.set(req, new Map());
-      const m = byReq.get(req);
-      if (!m.has(key)) m.set(key, { test, message: msg, count: 0 });
-      m.get(key).count += 1;
-    }
-
-    if (byReq.size === 0) return `<div class="note">No failed request details after filtering.</div>`;
-
-    let html = "";
-    const base = hrefBase ? escapeHtml(String(hrefBase).replace(/\\\\/g, '/')) : null;
-    for (const [req, map] of byReq) {
-      const total = Array.from(map.values()).reduce((s, r) => s + r.count, 0);
-      const checks = Array.from(map.values()).map((r) => `
-        <li>
-          <div class="assert">${escapeHtml(r.test)} <span class="count">×${r.count}</span></div>
-          <pre class="msg">${escapeHtml(r.message)}</pre>
-        </li>
-      `).join("");
-
-      const anchor = reqHref.get(req);
-      const href = base ? (anchor ? `${base}${escapeHtml(anchor)}` : base) : null;
-      html += `
-        <details class="req" open>
-          <summary>
-            <span>${href ? `<a href="${href}" target="_blank" rel="noopener">${escapeHtml(req)}</a>` : escapeHtml(req)}</span>
-            <span class="count">${total} failing check(s)</span>
-          </summary>
-          <ul class="checks">
-            ${checks}
-          </ul>
-        </details>
-      `;
-    }
-
-    return html;
-  }
 }
 
 /* ================================ 5) Main ================================ */
