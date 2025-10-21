@@ -659,3 +659,4 @@ function run() {
 }
 
 run();
+//Should open a browser tab with the summary.html file
