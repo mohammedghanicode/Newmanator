@@ -3,1297 +3,799 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Newmanator - Newman Report Collation Tool</title>
+    <title>Newmanator - Newman Report Collation</title>
     <style>
-        /* Design System CSS */
-        :root {
-  /* Primitive Color Tokens */
-  --color-white: rgba(255, 255, 255, 1);
-  --color-black: rgba(0, 0, 0, 1);
-  --color-cream-50: rgba(252, 252, 249, 1);
-  --color-cream-100: rgba(255, 255, 253, 1);
-  --color-gray-200: rgba(245, 245, 245, 1);
-  --color-gray-300: rgba(167, 169, 169, 1);
-  --color-gray-400: rgba(119, 124, 124, 1);
-  --color-slate-500: rgba(98, 108, 113, 1);
-  --color-brown-600: rgba(94, 82, 64, 1);
-  --color-charcoal-700: rgba(31, 33, 33, 1);
-  --color-charcoal-800: rgba(38, 40, 40, 1);
-  --color-slate-900: rgba(19, 52, 59, 1);
-  --color-teal-300: rgba(50, 184, 198, 1);
-  --color-teal-400: rgba(45, 166, 178, 1);
-  --color-teal-500: rgba(33, 128, 141, 1);
-  --color-teal-600: rgba(29, 116, 128, 1);
-  --color-teal-700: rgba(26, 104, 115, 1);
-  --color-teal-800: rgba(41, 150, 161, 1);
-  --color-red-400: rgba(255, 84, 89, 1);
-  --color-red-500: rgba(192, 21, 47, 1);
-  --color-orange-400: rgba(230, 129, 97, 1);
-  --color-orange-500: rgba(168, 75, 47, 1);
-
-  /* RGB versions for opacity control */
-  --color-brown-600-rgb: 94, 82, 64;
-  --color-teal-500-rgb: 33, 128, 141;
-  --color-slate-900-rgb: 19, 52, 59;
-  --color-slate-500-rgb: 98, 108, 113;
-  --color-red-500-rgb: 192, 21, 47;
-  --color-red-400-rgb: 255, 84, 89;
-  --color-orange-500-rgb: 168, 75, 47;
-  --color-orange-400-rgb: 230, 129, 97;
-
-  /* Background color tokens (Light Mode) */
-  --color-bg-1: rgba(59, 130, 246, 0.08);
-  --color-bg-2: rgba(245, 158, 11, 0.08);
-  --color-bg-3: rgba(34, 197, 94, 0.08);
-  --color-bg-4: rgba(239, 68, 68, 0.08);
-  --color-bg-5: rgba(147, 51, 234, 0.08);
-  --color-bg-6: rgba(249, 115, 22, 0.08);
-  --color-bg-7: rgba(236, 72, 153, 0.08);
-  --color-bg-8: rgba(6, 182, 212, 0.08);
-
-  /* Semantic Color Tokens (Light Mode) */
-  --color-background: var(--color-cream-50);
-  --color-surface: var(--color-cream-100);
-  --color-text: var(--color-slate-900);
-  --color-text-secondary: var(--color-slate-500);
-  --color-primary: var(--color-teal-500);
-  --color-primary-hover: var(--color-teal-600);
-  --color-primary-active: var(--color-teal-700);
-  --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
-  --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
-  --color-secondary-active: rgba(var(--color-brown-600-rgb), 0.25);
-  --color-border: rgba(var(--color-brown-600-rgb), 0.2);
-  --color-btn-primary-text: var(--color-cream-50);
-  --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
-  --color-card-border-inner: rgba(var(--color-brown-600-rgb), 0.12);
-  --color-error: var(--color-red-500);
-  --color-success: var(--color-teal-500);
-  --color-warning: var(--color-orange-500);
-  --color-info: var(--color-slate-500);
-  --color-focus-ring: rgba(var(--color-teal-500-rgb), 0.4);
-  --color-select-caret: rgba(var(--color-slate-900-rgb), 0.8);
-
-  /* Common style patterns */
-  --focus-ring: 0 0 0 3px var(--color-focus-ring);
-  --focus-outline: 2px solid var(--color-primary);
-  --status-bg-opacity: 0.15;
-  --status-border-opacity: 0.25;
-
-  /* RGB versions for opacity control */
-  --color-success-rgb: 33, 128, 141;
-  --color-error-rgb: 192, 21, 47;
-  --color-warning-rgb: 168, 75, 47;
-  --color-info-rgb: 98, 108, 113;
-
-  /* Typography */
-  --font-family-base: "FKGroteskNeue", "Geist", "Inter", -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-family-mono: "Berkeley Mono", ui-monospace, SFMono-Regular, Menlo,
-    Monaco, Consolas, monospace;
-  --font-size-xs: 11px;
-  --font-size-sm: 12px;
-  --font-size-base: 14px;
-  --font-size-md: 14px;
-  --font-size-lg: 16px;
-  --font-size-xl: 18px;
-  --font-size-2xl: 20px;
-  --font-size-3xl: 24px;
-  --font-size-4xl: 30px;
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 550;
-  --font-weight-bold: 600;
-  --line-height-tight: 1.2;
-  --line-height-normal: 1.5;
-  --letter-spacing-tight: -0.01em;
-
-  /* Spacing */
-  --space-0: 0;
-  --space-1: 1px;
-  --space-2: 2px;
-  --space-4: 4px;
-  --space-6: 6px;
-  --space-8: 8px;
-  --space-10: 10px;
-  --space-12: 12px;
-  --space-16: 16px;
-  --space-20: 20px;
-  --space-24: 24px;
-  --space-32: 32px;
-
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-base: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
-
-  /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04),
-    0 2px 4px -1px rgba(0, 0, 0, 0.02);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04),
-    0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
-
-  /* Animation */
-  --duration-fast: 150ms;
-  --duration-normal: 250ms;
-  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
-
-  /* Layout */
-  --container-sm: 640px;
-  --container-md: 768px;
-  --container-lg: 1024px;
-  --container-xl: 1280px;
-}
-
-/* Dark mode colors */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-gray-400-rgb: 119, 124, 124;
-    --color-teal-300-rgb: 50, 184, 198;
-    --color-gray-300-rgb: 167, 169, 169;
-    --color-gray-200-rgb: 245, 245, 245;
-
-    --color-bg-1: rgba(29, 78, 216, 0.15);
-    --color-bg-2: rgba(180, 83, 9, 0.15);
-    --color-bg-3: rgba(21, 128, 61, 0.15);
-    --color-bg-4: rgba(185, 28, 28, 0.15);
-    --color-bg-5: rgba(107, 33, 168, 0.15);
-    --color-bg-6: rgba(194, 65, 12, 0.15);
-    --color-bg-7: rgba(190, 24, 93, 0.15);
-    --color-bg-8: rgba(8, 145, 178, 0.15);
-
-    --color-background: var(--color-charcoal-700);
-    --color-surface: var(--color-charcoal-800);
-    --color-text: var(--color-gray-200);
-    --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
-    --color-primary: var(--color-teal-300);
-    --color-primary-hover: var(--color-teal-400);
-    --color-primary-active: var(--color-teal-800);
-    --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
-    --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
-    --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
-    --color-border: rgba(var(--color-gray-400-rgb), 0.3);
-    --color-error: var(--color-red-400);
-    --color-success: var(--color-teal-300);
-    --color-warning: var(--color-orange-400);
-    --color-info: var(--color-gray-300);
-    --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
-    --color-btn-primary-text: var(--color-slate-900);
-    --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
-    --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
-    --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
-    --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
-
-    --color-success-rgb: var(--color-teal-300-rgb);
-    --color-error-rgb: var(--color-red-400-rgb);
-    --color-warning-rgb: var(--color-orange-400-rgb);
-    --color-info-rgb: var(--color-gray-300-rgb);
-  }
-}
-
-@font-face {
-  font-family: 'FKGroteskNeue';
-  src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
-    format('woff2');
-}
-
-/* Base styles */
-html {
-  font-size: var(--font-size-base);
-  font-family: var(--font-family-base);
-  line-height: var(--line-height-normal);
-  color: var(--color-text);
-  background-color: var(--color-background);
-  -webkit-font-smoothing: antialiased;
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: inherit;
-}
-
-/* Custom Styles */
-.app-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.header {
-    background-color: var(--color-surface);
-    border-bottom: 1px solid var(--color-card-border);
-    padding: var(--space-20) var(--space-32);
-    box-shadow: var(--shadow-sm);
-}
-
-.header-content {
-    max-width: var(--container-xl);
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: var(--space-16);
-}
-
-.logo {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-}
-
-.logo-icon {
-    font-size: 32px;
-}
-
-.main-content {
-    flex: 1;
-    padding: var(--space-32);
-    max-width: var(--container-xl);
-    margin: 0 auto;
-    width: 100%;
-}
-
-.hero-section {
-    text-align: center;
-    margin-bottom: var(--space-32);
-}
-
-.hero-title {
-    font-size: var(--font-size-4xl);
-    font-weight: var(--font-weight-bold);
-    margin-bottom: var(--space-16);
-    color: var(--color-text);
-}
-
-.hero-description {
-    font-size: var(--font-size-lg);
-    color: var(--color-text-secondary);
-    max-width: 700px;
-    margin: 0 auto var(--space-32);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: var(--space-16);
-    margin-bottom: var(--space-32);
-}
-
-.feature-card {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-20);
-    box-shadow: var(--shadow-sm);
-}
-
-.feature-card h3 {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    margin-bottom: var(--space-8);
-    color: var(--color-text);
-}
-
-.feature-card p {
-    font-size: var(--font-size-base);
-    color: var(--color-text-secondary);
-    margin: 0;
-}
-
-.upload-section {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-32);
-    margin-bottom: var(--space-24);
-    box-shadow: var(--shadow-md);
-}
-
-.drop-zone {
-    border: 2px dashed var(--color-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-32);
-    text-align: center;
-    background-color: var(--color-bg-1);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.drop-zone:hover {
-    border-color: var(--color-primary);
-    background-color: var(--color-bg-8);
-}
-
-.drop-zone.drag-over {
-    border-color: var(--color-primary);
-    background-color: var(--color-bg-3);
-    border-style: solid;
-}
-
-.drop-zone-icon {
-    font-size: 48px;
-    margin-bottom: var(--space-16);
-}
-
-.drop-zone-text {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-    margin-bottom: var(--space-8);
-}
-
-.drop-zone-subtext {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-16);
-}
-
-.browse-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-10) var(--space-20);
-    background-color: var(--color-primary);
-    color: var(--color-btn-primary-text);
-    border: none;
-    border-radius: var(--radius-base);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.browse-button:hover {
-    background-color: var(--color-primary-hover);
-}
-
-.browse-button:active {
-    background-color: var(--color-primary-active);
-}
-
-.file-input {
-    display: none;
-}
-
-.file-list {
-    margin-top: var(--space-24);
-}
-
-.file-list-title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    margin-bottom: var(--space-16);
-    color: var(--color-text);
-}
-
-.file-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-12) var(--space-16);
-    background-color: var(--color-background);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-base);
-    margin-bottom: var(--space-8);
-}
-
-.file-info {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    flex: 1;
-}
-
-.file-icon {
-    font-size: var(--font-size-2xl);
-}
-
-.file-details {
-    flex: 1;
-}
-
-.file-name {
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-text);
-    margin-bottom: var(--space-2);
-}
-
-.file-size {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-}
-
-.remove-button {
-    padding: var(--space-6) var(--space-12);
-    background-color: transparent;
-    color: var(--color-error);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
-    cursor: pointer;
-    transition: all var(--duration-fast) var(--ease-standard);
-}
-
-.remove-button:hover {
-    background-color: rgba(var(--color-error-rgb), 0.1);
-    border-color: var(--color-error);
-}
-
-.action-buttons {
-    display: flex;
-    gap: var(--space-16);
-    justify-content: center;
-    margin-top: var(--space-24);
-}
-
-.process-button {
-    padding: var(--space-12) var(--space-32);
-    background-color: var(--color-primary);
-    color: var(--color-btn-primary-text);
-    border: none;
-    border-radius: var(--radius-base);
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-    box-shadow: var(--shadow-sm);
-}
-
-.process-button:hover:not(:disabled) {
-    background-color: var(--color-primary-hover);
-    box-shadow: var(--shadow-md);
-}
-
-.process-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.clear-button {
-    padding: var(--space-12) var(--space-24);
-    background-color: var(--color-secondary);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.clear-button:hover {
-    background-color: var(--color-secondary-hover);
-}
-
-.processing-section {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-32);
-    text-align: center;
-    margin-bottom: var(--space-24);
-    box-shadow: var(--shadow-md);
-}
-
-.processing-icon {
-    font-size: 64px;
-    margin-bottom: var(--space-16);
-}
-
-.processing-title {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text);
-    margin-bottom: var(--space-12);
-}
-
-.processing-text {
-    font-size: var(--font-size-base);
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-24);
-}
-
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background-color: var(--color-secondary);
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    margin-bottom: var(--space-16);
-}
-
-.progress-fill {
-    height: 100%;
-    background-color: var(--color-primary);
-    transition: width var(--duration-normal) var(--ease-standard);
-}
-
-.step-list {
-    text-align: left;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.step-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    padding: var(--space-8) 0;
-    font-size: var(--font-size-base);
-    color: var(--color-text-secondary);
-}
-
-.step-item.active {
-    color: var(--color-primary);
-    font-weight: var(--font-weight-medium);
-}
-
-.step-item.completed {
-    color: var(--color-success);
-}
-
-.step-number {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: var(--color-secondary);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-}
-
-.step-item.active .step-number {
-    background-color: var(--color-primary);
-    color: var(--color-btn-primary-text);
-}
-
-.step-item.completed .step-number {
-    background-color: var(--color-success);
-    color: var(--color-btn-primary-text);
-}
-
-.results-section {
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-32);
-    margin-bottom: var(--space-24);
-    box-shadow: var(--shadow-md);
-}
-
-.results-header {
-    text-align: center;
-    margin-bottom: var(--space-32);
-}
-
-.success-icon {
-    font-size: 64px;
-    margin-bottom: var(--space-16);
-}
-
-.results-title {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-success);
-    margin-bottom: var(--space-8);
-}
-
-.results-message {
-    font-size: var(--font-size-base);
-    color: var(--color-text-secondary);
-}
-
-.results-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: var(--space-16);
-    margin-bottom: var(--space-32);
-}
-
-.stat-card {
-    background-color: var(--color-bg-1);
-    border: 1px solid var(--color-card-border);
-    border-radius: var(--radius-base);
-    padding: var(--space-16);
-    text-align: center;
-}
-
-.stat-value {
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-primary);
-    margin-bottom: var(--space-4);
-}
-
-.stat-label {
-    font-size: var(--font-size-sm);
-    color: var(--color-text-secondary);
-}
-
-.results-actions {
-    display: flex;
-    gap: var(--space-16);
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.download-button {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-8);
-    padding: var(--space-12) var(--space-24);
-    background-color: var(--color-primary);
-    color: var(--color-btn-primary-text);
-    border: none;
-    border-radius: var(--radius-base);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-    text-decoration: none;
-    box-shadow: var(--shadow-sm);
-}
-
-.download-button:hover {
-    background-color: var(--color-primary-hover);
-    box-shadow: var(--shadow-md);
-}
-
-.new-batch-button {
-    padding: var(--space-12) var(--space-24);
-    background-color: var(--color-secondary);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-base);
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    cursor: pointer;
-    transition: all var(--duration-normal) var(--ease-standard);
-}
-
-.new-batch-button:hover {
-    background-color: var(--color-secondary-hover);
-}
-
-.alert {
-    padding: var(--space-16);
-    border-radius: var(--radius-base);
-    margin-bottom: var(--space-24);
-    display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    font-size: var(--font-size-base);
-}
-
-.alert-error {
-    background-color: rgba(var(--color-error-rgb), 0.1);
-    color: var(--color-error);
-    border: 1px solid rgba(var(--color-error-rgb), 0.3);
-}
-
-.alert-icon {
-    font-size: var(--font-size-xl);
-}
-
-.hidden {
-    display: none !important;
-}
-
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
-
-.spin {
-    animation: spin 1s linear infinite;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .main-content {
-        padding: var(--space-16);
-    }
-
-    .hero-title {
-        font-size: var(--font-size-2xl);
-    }
-
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .upload-section {
-        padding: var(--space-16);
-    }
-
-    .drop-zone {
-        padding: var(--space-24);
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    .results-actions {
-        flex-direction: column;
-    }
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            color: #1f2937;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            padding: 3rem 2rem 2rem;
+            color: white;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: -2rem auto 0;
+            padding: 0 2rem 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            margin-bottom: 2rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .card-content {
+            padding: 2rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            background: #f9fafb;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area.dragover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8fafc;
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            color: #6b7280;
+        }
+
+        .upload-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .browse-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .browse-button:hover {
+            background: #2563eb;
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .file-icon {
+            width: 20px;
+            height: 20px;
+            color: #3b82f6;
+        }
+
+        .file-details h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .file-details p {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .remove-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .remove-button:hover {
+            background: #dc2626;
+        }
+
+        .process-button {
+            width: 100%;
+            background: #059669;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+
+        .process-button:hover {
+            background: #047857;
+        }
+
+        .process-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            display: none;
+            text-align: center;
+        }
+
+        .progress-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-step {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 6px;
+            background: #f3f4f6;
+            transition: all 0.2s;
+        }
+
+        .progress-step.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .progress-step.completed {
+            background: #059669;
+            color: white;
+        }
+
+        .step-icon {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 0.5rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .step-description {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .results-header h2 {
+            color: #059669;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .download-button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .download-button:hover {
+            background: #2563eb;
+            text-decoration: none;
+            color: white;
+        }
+
+        .new-batch-button {
+            background: #6b7280;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .new-batch-button:hover {
+            background: #4b5563;
+        }
+
+        .results-preview {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            height: 500px;
+            margin-top: 1rem;
+            background: white;
+        }
+
+        .results-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 6px;
+        }
+
+        .error-container {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .retry-button {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .retry-button:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 0 1rem 1rem;
+            }
+            
+            .card-content {
+                padding: 1.5rem;
+            }
+            
+            .progress-steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <span class="logo-icon">🔄</span>
-                    <span>Newmanator</span>
-                </div>
-            </div>
-        </header>
+    <div class="header">
+        <h1>⚡ Newmanator</h1>
+        <p>Smart, one-command tool for collating Newman test reports into a single, interactive HTML summary</p>
+    </div>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Hero Section -->
-            <section class="hero-section">
-                <h1 class="hero-title">Newman Report Collation Tool</h1>
-                <p class="hero-description">Smart, one-command tool for collating Newman test reports into a single, interactive HTML summary</p>
-            </section>
-
-            <!-- Features Grid -->
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>⚡ One-click automation</h3>
-                    <p>Run once, collate everything</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📦 Multi-format support</h3>
-                    <p>ZIP and HTML files supported</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📊 HTML summary output</h3>
-                    <p>View results instantly in browser</p>
-                </div>
-                <div class="feature-card">
-                    <h3>🧠 Smart merge logic</h3>
-                    <p>Combines multiple collections into unified summary</p>
-                </div>
-            </div>
-
-            <!-- Upload Section -->
-            <div id="uploadSection" class="upload-section">
-                <div id="dropZone" class="drop-zone">
-                    <div class="drop-zone-icon">📂</div>
-                    <div class="drop-zone-text">Drag your Newman reports here</div>
-                    <div class="drop-zone-subtext">Supports .zip and .html files</div>
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="card" id="uploadCard">
+            <div class="card-content">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                    <div class="upload-text">Drop your files here</div>
+                    <div class="upload-subtext">or click to browse (.zip and .html files, max 500MB each)</div>
                     <button class="browse-button" onclick="document.getElementById('fileInput').click()">
                         Browse Files
                     </button>
-                    <input type="file" id="fileInput" class="file-input" multiple accept=".zip,.html" onchange="handleFileSelect(event)">
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".zip,.html">
                 </div>
 
-                <div id="fileListContainer" class="file-list hidden">
-                    <h3 class="file-list-title">Selected Files</h3>
-                    <div id="fileList"></div>
-                </div>
+                <div class="file-list" id="fileList"></div>
 
-                <div id="actionButtons" class="action-buttons hidden">
-                    <button class="process-button" onclick="processReports()">Process Reports</button>
-                    <button class="clear-button" onclick="clearFiles()">Clear All</button>
+                <button class="process-button" id="processButton" onclick="processFiles()" disabled>
+                    Process Reports
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div class="card" id="progressCard">
+            <div class="card-content">
+                <div class="progress-container">
+                    <div class="progress-steps">
+                        <div class="progress-step" id="step1">
+                            <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                            </svg>
+                            <div class="step-title">Upload</div>
+                            <div class="step-description">Files received</div>
+                        </div>
+                        <div class="progress-step" id="step2">
+                            <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="step-title">Validation</div>
+                            <div class="step-description">Checking files</div>
+                        </div>
+                        <div class="progress-step" id="step3">
+                            <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            <div class="step-title">Processing</div>
+                            <div class="step-description">Extracting data</div>
+                        </div>
+                        <div class="progress-step" id="step4">
+                            <svg class="step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="step-title">Complete</div>
+                            <div class="step-description">Summary ready</div>
+                        </div>
+                    </div>
+
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text" id="progressText">Processing your reports...</div>
                 </div>
             </div>
+        </div>
 
-            <!-- Error Alert -->
-            <div id="errorAlert" class="alert alert-error hidden">
-                <span class="alert-icon">⚠️</span>
-                <span id="errorMessage"></span>
-            </div>
+        <!-- Error Section -->
+        <div class="error-container" id="errorContainer">
+            <div class="error-title">Processing Failed</div>
+            <div id="errorMessage">An error occurred while processing your files.</div>
+            <button class="retry-button" onclick="retryProcessing()">Retry</button>
+        </div>
 
-            <!-- Processing Section -->
-            <div id="processingSection" class="processing-section hidden">
-                <div class="processing-icon spin">⚙️</div>
-                <h2 class="processing-title">Processing Reports</h2>
-                <p class="processing-text" id="processingStatus">Preparing your Newman reports...</p>
-                
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
-                </div>
+        <!-- Results Section -->
+        <div class="card" id="resultsCard">
+            <div class="card-content">
+                <div class="results-container">
+                    <div class="results-header">
+                        <h2>✅ Processing Complete</h2>
+                        <p>Your Newman test reports have been successfully collated.</p>
+                    </div>
 
-                <div class="step-list">
-                    <div class="step-item" id="step1">
-                        <span class="step-number">1</span>
-                        <span>File Validation</span>
+                    <div style="text-align: center; margin-bottom: 1rem;">
+                        <a href="#" class="download-button" id="downloadButton" target="_blank">
+                            📥 Download Summary
+                        </a>
+                        <button class="new-batch-button" onclick="startNewBatch()">
+                            🔄 New Batch
+                        </button>
                     </div>
-                    <div class="step-item" id="step2">
-                        <span class="step-number">2</span>
-                        <span>Extraction/Processing</span>
-                    </div>
-                    <div class="step-item" id="step3">
-                        <span class="step-number">3</span>
-                        <span>Report Collation</span>
-                    </div>
-                    <div class="step-item" id="step4">
-                        <span class="step-number">4</span>
-                        <span>HTML Generation</span>
+
+                    <div class="results-preview">
+                        <iframe class="results-iframe" id="resultsIframe"></iframe>
                     </div>
                 </div>
             </div>
-
-            <!-- Results Section -->
-            <div id="resultsSection" class="results-section hidden">
-                <div class="results-header">
-                    <div class="success-icon">✅</div>
-                    <h2 class="results-title">Reports Successfully Processed!</h2>
-                    <p class="results-message">Your Newman reports have been collated into a unified summary</p>
-                </div>
-
-                <div class="results-stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="filesProcessed">0</div>
-                        <div class="stat-label">Files Processed</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalTests">0</div>
-                        <div class="stat-label">Total Tests</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="passedTests">0</div>
-                        <div class="stat-label">Tests Passed</div>
-                    </div>
-                </div>
-
-                <div class="results-actions">
-                    <a href="#" class="download-button" id="downloadLink" download="summary.html">
-                        <span>📥</span>
-                        <span>Download Summary HTML</span>
-                    </a>
-                    <button class="new-batch-button" onclick="startNewBatch()">Process New Batch</button>
-                </div>
-            </div>
-        </main>
+        </div>
     </div>
 
     <script>
-        // Application state
         let selectedFiles = [];
-        let processingId = null;
+        let currentSessionId = null;
         let eventSource = null;
-        const API_BASE = 'http://localhost:3000/api';
 
-        // Drag and drop functionality
-        const dropZone = document.getElementById('dropZone');
+        // DOM elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processButton = document.getElementById('processButton');
+        const uploadCard = document.getElementById('uploadCard');
+        const progressCard = document.getElementById('progressCard');
+        const resultsCard = document.getElementById('resultsCard');
+        const errorContainer = document.getElementById('errorContainer');
 
-        dropZone.addEventListener('dragover', (e) => {
+        // File handling
+        uploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
-            dropZone.classList.add('drag-over');
+            uploadArea.classList.add('dragover');
         });
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
         });
 
-        dropZone.addEventListener('drop', (e) => {
+        uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            
+            uploadArea.classList.remove('dragover');
             const files = Array.from(e.dataTransfer.files);
             addFiles(files);
         });
 
-        // File selection handler
-        function handleFileSelect(event) {
-            const files = Array.from(event.target.files);
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
             addFiles(files);
-        }
+        });
 
-        // Add files to selection
         function addFiles(files) {
-            const validFiles = files.filter(file => {
-                const ext = file.name.toLowerCase();
-                return ext.endsWith('.zip') || ext.endsWith('.html');
-            });
-
-            if (validFiles.length === 0) {
-                showError('Please select valid .zip or .html files');
-                return;
-            }
-
-            // Add to selected files
-            validFiles.forEach(file => {
-                if (!selectedFiles.some(f => f.name === file.name)) {
-                    selectedFiles.push(file);
+            files.forEach(file => {
+                if (file.name.endsWith('.zip') || file.name.endsWith('.html')) {
+                    if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                        selectedFiles.push(file);
+                    }
+                } else {
+                    showError(`Unsupported file: ${file.name}. Only .zip and .html files are allowed.`);
                 }
             });
-
-            hideError();
             updateFileList();
+            updateProcessButton();
         }
 
-        // Update file list display
-        function updateFileList() {
-            const fileList = document.getElementById('fileList');
-            const fileListContainer = document.getElementById('fileListContainer');
-            const actionButtons = document.getElementById('actionButtons');
-
-            if (selectedFiles.length === 0) {
-                fileListContainer.classList.add('hidden');
-                actionButtons.classList.add('hidden');
-                return;
-            }
-
-            fileListContainer.classList.remove('hidden');
-            actionButtons.classList.remove('hidden');
-
-            fileList.innerHTML = selectedFiles.map((file, index) => {
-                const icon = file.name.toLowerCase().endsWith('.zip') ? '📦' : '📄';
-                const size = formatFileSize(file.size);
-                
-                return `
-                    <div class="file-item">
-                        <div class="file-info">
-                            <div class="file-icon">${icon}</div>
-                            <div class="file-details">
-                                <div class="file-name">${file.name}</div>
-                                <div class="file-size">${size}</div>
-                            </div>
-                        </div>
-                        <button class="remove-button" onclick="removeFile(${index})">Remove</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Remove file from selection
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             updateFileList();
+            updateProcessButton();
         }
 
-        // Clear all files
-        function clearFiles() {
-            selectedFiles = [];
-            updateFileList();
-            document.getElementById('fileInput').value = '';
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                const isZip = file.name.endsWith('.zip');
+                const size = (file.size / (1024 * 1024)).toFixed(2);
+                
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <svg class="file-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isZip ? 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z' : 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'}"/>
+                        </svg>
+                        <div class="file-details">
+                            <h4>${file.name}</h4>
+                            <p>${size} MB • ${isZip ? 'Archive' : 'HTML Report'}</p>
+                        </div>
+                    </div>
+                    <button class="remove-button" onclick="removeFile(${index})">Remove</button>
+                `;
+                
+                fileList.appendChild(fileItem);
+            });
         }
 
-        // Format file size
-        function formatFileSize(bytes) {
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        function updateProcessButton() {
+            processButton.disabled = selectedFiles.length === 0;
         }
 
-        // Show error message
-        function showError(message) {
-            const errorAlert = document.getElementById('errorAlert');
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
-            errorAlert.classList.remove('hidden');
-        }
-
-        // Hide error message
-        function hideError() {
-            document.getElementById('errorAlert').classList.add('hidden');
-        }
-
-        // Process reports
-        async function processReports() {
-            if (selectedFiles.length === 0) {
-                showError('Please select at least one .zip or .html file to process');
-                return;
-            }
+        async function processFiles() {
+            if (selectedFiles.length === 0) return;
 
             try {
-                // Hide upload section and error
-                document.getElementById('uploadSection').classList.add('hidden');
-                hideError();
-
-                // Show processing section
-                const processingSection = document.getElementById('processingSection');
-                processingSection.classList.remove('hidden');
-
-                // Upload files to backend
+                hideAllCards();
+                showProgressCard();
+                
+                // Create FormData
                 const formData = new FormData();
                 selectedFiles.forEach(file => {
                     formData.append('files', file);
                 });
 
-                console.log('Uploading files to backend...');
-                const uploadResponse = await fetch(`${API_BASE}/upload`, {
+                // Upload files
+                const response = await fetch('/api/upload', {
                     method: 'POST',
                     body: formData
                 });
 
-                if (!uploadResponse.ok) {
-                    const errorText = await uploadResponse.text();
-                    console.error('Upload failed:', errorText);
-                    throw new Error('Upload failed: ' + errorText);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Upload failed: ${response.status} ${response.statusText} - ${errorText}`);
                 }
 
-                const uploadData = await uploadResponse.json();
-                console.log('Upload response:', uploadData);
-                const sessionId = uploadData.sessionId || uploadData.id;
-                processingId = sessionId;
-
-                if (!sessionId) {
-                    throw new Error('No session ID received from server');
-                }
-
-                // Connect to Server-Sent Events for real-time updates
-                await connectToEventStream(sessionId);
-
-                // Hide processing, show results
-                processingSection.classList.add('hidden');
-                await showResults(id);
-
+                const result = await response.json();
+                currentSessionId = result.sessionId;
+                console.log('Upload successful, session ID:', currentSessionId);
+                
+                // Start listening for updates
+                listenForUpdates(currentSessionId);
+                
             } catch (error) {
                 console.error('Processing error:', error);
-                
-                // Close event source if open
-                if (eventSource) {
-                    eventSource.close();
-                    eventSource = null;
-                }
-                
-                document.getElementById('processingSection').classList.add('hidden');
-                document.getElementById('uploadSection').classList.remove('hidden');
-                showError('Processing failed: ' + error.message + '. Check browser console for details.');
+                showError(error.message);
             }
         }
 
-        // Connect to Server-Sent Events stream
-        async function connectToEventStream(sessionId) {
-            return new Promise((resolve, reject) => {
-                console.log('Connecting to event stream:', `${API_BASE}/events/${sessionId}`);
+        function listenForUpdates(sessionId) {
+            try {
+                eventSource = new EventSource(`/api/events/${sessionId}`);
+                console.log('Connecting to event stream for session:', sessionId);
                 
-                eventSource = new EventSource(`${API_BASE}/events/${sessionId}`);
-                
-                eventSource.onopen = () => {
-                    console.log('Event stream connected');
+                eventSource.onmessage = (event) => {
+                    const status = JSON.parse(event.data);
+                    console.log('Status update received:', status);
+                    updateProgress(status);
                 };
-
-                eventSource.addEventListener('status', (event) => {
-                    console.log('Status event received:', event.data);
-                    try {
-                        const status = JSON.parse(event.data);
-                        updateProcessingUI(status);
-                    } catch (error) {
-                        console.error('Error parsing status:', error);
-                    }
-                });
-
-                eventSource.addEventListener('complete', (event) => {
-                    console.log('Complete event received:', event.data);
-                    eventSource.close();
-                    eventSource = null;
-                    resolve();
-                });
-
-                eventSource.addEventListener('error-event', (event) => {
-                    console.error('Error event received:', event.data);
-                    const error = JSON.parse(event.data);
-                    eventSource.close();
-                    eventSource = null;
-                    reject(new Error(error.message || 'Processing failed'));
-                });
 
                 eventSource.onerror = (error) => {
                     console.error('EventSource error:', error);
-                    // Don't reject immediately - server might still be processing
-                    // Fall back to polling if SSE fails
-                    eventSource.close();
-                    eventSource = null;
-                    console.log('SSE failed, falling back to polling');
-                    pollProcessingStatus(sessionId).then(resolve).catch(reject);
-                };
-
-                // Timeout after 5 minutes
-                setTimeout(() => {
                     if (eventSource) {
                         eventSource.close();
                         eventSource = null;
-                        reject(new Error('Processing timeout'));
                     }
-                }, 300000);
-            });
+                    console.log('SSE failed, falling back to polling');
+                    // Fallback to polling
+                    pollForStatus(sessionId);
+                };
+            } catch (error) {
+                console.error('EventSource connection failed:', error);
+                pollForStatus(sessionId);
+            }
         }
 
-        // Update processing UI based on status
-        function updateProcessingUI(status) {
-            const stepMapping = {
-                'upload': { id: 'step1', message: 'Uploading files to server...', progress: 25 },
-                'validation': { id: 'step1', message: 'Server validating files...', progress: 30 },
-                'processing': { id: 'step2', message: 'Backend processing files...', progress: 50 },
-                'collation': { id: 'step3', message: 'Backend collating reports...', progress: 75 },
-                'complete': { id: 'step4', message: 'Comprehensive HTML generated!', progress: 100 }
-            };
-
-            const stage = status.stage || status.status || 'upload';
-            const stepInfo = stepMapping[stage] || stepMapping['upload'];
-
-            // Update status text
-            const statusText = status.message || stepInfo.message;
-            document.getElementById('processingStatus').textContent = statusText;
+        async function pollForStatus(sessionId) {
+            const maxAttempts = 60;
+            let attempts = 0;
             
-            // Update progress bar
-            document.getElementById('progressFill').style.width = stepInfo.progress + '%';
+            const poll = async () => {
+                try {
+                    console.log('Polling status for session:', sessionId);
+                    const response = await fetch(`/api/status/${sessionId}`);
+                    const status = await response.json();
+                    console.log('Polling status received:', status);
+                    updateProgress(status);
+                    
+                    if (status.status === 'complete') {
+                        await loadResults(sessionId);
+                        return;
+                    } else if (status.status === 'error') {
+                        showError(status.message || 'Processing failed');
+                        return;
+                    }
+                    
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, 2000);
+                    } else {
+                        showError('Processing timeout');
+                    }
+                    
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, 3000);
+                    } else {
+                        showError('Failed to get status');
+                    }
+                }
+            };
+            
+            poll();
+        }
 
-            // Update step indicators
+        function updateProgress(status) {
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            progressFill.style.width = `${status.progress || 0}%`;
+            progressText.textContent = status.message || 'Processing...';
+            
+            // Update steps
             const steps = ['step1', 'step2', 'step3', 'step4'];
-            const currentStepIndex = parseInt(stepInfo.id.replace('step', '')) - 1;
-
+            const stageMapping = {
+                'upload': 0,
+                'validation': 1, 
+                'processing': 2,
+                'collation': 2,
+                'complete': 3
+            };
+            
+            const currentStepIndex = stageMapping[status.stage] || 0;
+            
             steps.forEach((stepId, index) => {
                 const stepElement = document.getElementById(stepId);
                 stepElement.classList.remove('active', 'completed');
                 
-                if (index < currentStepIndex) {
+                if (status.status === 'complete' && index <= 3) {
+                    stepElement.classList.add('completed');
+                } else if (index < currentStepIndex) {
                     stepElement.classList.add('completed');
                 } else if (index === currentStepIndex) {
                     stepElement.classList.add('active');
                 }
             });
-        }
 
-        // Poll for processing status (fallback)
-        async function pollProcessingStatus(id) {
-            console.log('Polling status for:', id);
-            
-            while (true) {
-                try {
-                    const response = await fetch(`${API_BASE}/status/${id}`);
-                    
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error('Status check failed:', errorText);
-                        throw new Error('Status check failed');
-                    }
-
-                    const status = await response.json();
-                    console.log('Status:', status);
-                    
-                    if (status.error) {
-                        throw new Error(status.error);
-                    }
-
-                    // Update UI
-                    updateProcessingUI(status);
-
-                    if (status.stage === 'complete' || status.status === 'complete') {
-                        // Mark all steps as completed
-                        ['step1', 'step2', 'step3', 'step4'].forEach(stepId => {
-                            document.getElementById(stepId).classList.remove('active');
-                            document.getElementById(stepId).classList.add('completed');
-                        });
-                        break;
-                    }
-
-                    // Poll every 1 second
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                } catch (error) {
-                    console.error('Polling error:', error);
-                    throw error;
-                }
+            // Load results when complete
+            if (status.status === 'complete') {
+                loadResults(currentSessionId);
             }
         }
 
-        // Show results
-        async function showResults(id) {
-            console.log('Fetching results for:', id);
-            
+        async function loadResults(sessionId) {
             try {
-                const response = await fetch(`${API_BASE}/results/${id}`);
+                console.log('Loading results for session:', sessionId);
+                const response = await fetch(`/api/results/${sessionId}`);
                 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Failed to fetch results:', errorText);
-                    throw new Error('Failed to fetch results');
+                    throw new Error(`Failed to load results: ${response.statusText}`);
                 }
-
-                const results = await response.json();
-                console.log('Results received:', results);
                 
-                const resultsSection = document.getElementById('resultsSection');
-                resultsSection.classList.remove('hidden');
-
-                // Update statistics from actual backend results
-                document.getElementById('filesProcessed').textContent = results.filesProcessed || results.stats?.filesProcessed || selectedFiles.length;
-                document.getElementById('totalTests').textContent = results.totalTests || results.stats?.totalTests || 'N/A';
-                document.getElementById('passedTests').textContent = results.passedTests || results.stats?.passedTests || 'N/A';
-
-                // Set download link to actual summary file from backend
-                const downloadLink = document.getElementById('downloadLink');
-                downloadLink.href = `${API_BASE}/download/${id}`;
-                downloadLink.download = 'summary.html';
+                const data = await response.json();
+                console.log('Results loaded successfully');
                 
-                console.log('Download link set to:', downloadLink.href);
-
+                hideAllCards();
+                showResultsCard();
+                
+                // Set download link
+                document.getElementById('downloadButton').href = `/api/download/${sessionId}`;
+                
+                // Display results
+                const iframe = document.getElementById('resultsIframe');
+                iframe.srcdoc = data.html;
+                
+                console.log('Results displayed successfully');
+                
             } catch (error) {
-                console.error('Results error:', error);
-                // Show results section with default values but still allow download
-                const resultsSection = document.getElementById('resultsSection');
-                resultsSection.classList.remove('hidden');
-                
-                document.getElementById('filesProcessed').textContent = selectedFiles.length;
-                document.getElementById('totalTests').textContent = 'N/A';
-                document.getElementById('passedTests').textContent = 'N/A';
-
-                // Still provide download link - the file should exist even if stats extraction failed
-                const downloadLink = document.getElementById('downloadLink');
-                downloadLink.href = `${API_BASE}/download/${id}`;
-                downloadLink.download = 'summary.html';
-                
-                console.warn('Showing results with download link despite error');
+                console.error('Error loading results:', error);
+                showError(`Failed to load results: ${error.message}`);
             }
         }
 
+        function hideAllCards() {
+            uploadCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            resultsCard.style.display = 'none';
+            errorContainer.style.display = 'none';
+        }
 
+        function showProgressCard() {
+            progressCard.style.display = 'block';
+            progressCard.querySelector('.progress-container').style.display = 'block';
+        }
 
-        // Start new batch
+        function showResultsCard() {
+            resultsCard.style.display = 'block';
+            resultsCard.querySelector('.results-container').style.display = 'block';
+        }
+
+        function showError(message) {
+            hideAllCards();
+            errorContainer.style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        function retryProcessing() {
+            hideAllCards();
+            uploadCard.style.display = 'block';
+        }
+
         function startNewBatch() {
-            // Close event source if still open
+            selectedFiles = [];
+            currentSessionId = null;
             if (eventSource) {
                 eventSource.close();
                 eventSource = null;
             }
             
-            // Reset state
-            selectedFiles = [];
-            processingId = null;
-            document.getElementById('fileInput').value = '';
+            hideAllCards();
+            uploadCard.style.display = 'block';
             
-            // Hide results and processing
-            document.getElementById('resultsSection').classList.add('hidden');
-            document.getElementById('processingSection').classList.add('hidden');
-            
-            // Reset processing steps
-            ['step1', 'step2', 'step3', 'step4'].forEach(id => {
-                document.getElementById(id).classList.remove('active', 'completed');
-            });
-            document.getElementById('progressFill').style.width = '0%';
-            
-            // Show upload section
-            document.getElementById('uploadSection').classList.remove('hidden');
             updateFileList();
+            updateProcessButton();
+            fileInput.value = '';
         }
+
+        // Initialize
+        hideAllCards();
+        uploadCard.style.display = 'block';
     </script>
 </body>
 </html>

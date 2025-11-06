@@ -15,25 +15,7 @@ const RESULTS_DIR = path.join(__dirname, "results");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 if (!fs.existsSync(RESULTS_DIR)) fs.mkdirSync(RESULTS_DIR, { recursive: true });
 
-// DEBUG: Check what files exist in the main directory
-console.log("🔍 DIAGNOSTIC: Checking main directory files...");
-console.log("Current directory:", __dirname);
-const mainFiles = fs.readdirSync(__dirname);
-console.log(
-  "Files in main directory:",
-  mainFiles.filter((f) => f.endsWith(".js"))
-);
-
-// Check for your key files
-const requiredFiles = ["process-files.js", "summarise.js"];
-requiredFiles.forEach((file) => {
-  const exists = fs.existsSync(path.join(__dirname, file));
-  console.log(
-    `${exists ? "✅" : "❌"} ${file}: ${exists ? "Found" : "MISSING"}`
-  );
-});
-
-// Storage configuration for multer
+// Storage configuration for multer - INCREASED FILE SIZE LIMIT
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const sessionId = req.body.sessionId || uuidv4();
@@ -66,7 +48,7 @@ const upload = multer({
     }
   },
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
+    fileSize: 500 * 1024 * 1024, // 500MB limit (increased from 50MB)
   },
 });
 
@@ -372,7 +354,7 @@ app.use((error, req, res, next) => {
     if (error.code === "LIMIT_FILE_SIZE") {
       return res
         .status(400)
-        .json({ error: "File too large. Maximum size is 50MB." });
+        .json({ error: "File too large. Maximum size is 500MB." });
     }
   }
   console.error("🚨 Server error:", error);
@@ -381,11 +363,10 @@ app.use((error, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(
-    `🚀 Newmanator DIAGNOSTIC server running at http://localhost:${PORT}`
-  );
+  console.log(`🚀 Newmanator server running at http://localhost:${PORT}`);
   console.log(`📁 Upload directory: ${UPLOAD_DIR}`);
   console.log(`📊 Results directory: ${RESULTS_DIR}`);
+  console.log(`📦 Maximum file size: 500MB`);
   console.log(
     `💡 Uses your existing process-files.js and summarise.js pipeline`
   );
