@@ -5,13 +5,11 @@ const cheerio = require("cheerio");
 
 // Turn this on when JSON isn't available and you want HTML-parsed details.
 const ENABLE_HTML_DETAILS_FALLBACK = true;
-const HTML_DETAILS_MAX_ROWS = 5000;   // cap HTML-parsed rows to keep memory stable
-const JSON_DETAILS_MAX_ROWS = 20000;  // cap JSON rows just in case
+const HTML_DETAILS_MAX_ROWS = 5000; // cap HTML-parsed rows to keep memory stable
+const JSON_DETAILS_MAX_ROWS = 20000; // cap JSON rows just in case
 
 // Exclude patterns: tests/messages that should be ignored entirely
-const EXCLUDE_PATTERNS = [
-  /Response time is below threshold/i
-];
+const EXCLUDE_PATTERNS = [/Response time is below threshold/i];
 
 /* ============================== helpers ============================== */
 function toNumber(val, fallback = 0) {
@@ -49,8 +47,14 @@ function redactSensitive(s) {
   let out = String(s);
 
   // Bearer tokens / JWTs
-  out = out.replace(/\bBearer\s+[A-Za-z0-9\-\._]+\b/gi, "Bearer ***redacted***");
-  out = out.replace(/\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b/g, "***redacted.jwt***");
+  out = out.replace(
+    /\bBearer\s+[A-Za-z0-9\-\._]+\b/gi,
+    "Bearer ***redacted***"
+  );
+  out = out.replace(
+    /\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b/g,
+    "***redacted.jwt***"
+  );
 
   // Generic long base64ish tokens (avoid eating normal words)
   out = out.replace(/\b[A-Za-z0-9+/_-]{32,}\b/g, "***redacted***");
@@ -64,17 +68,36 @@ function redactSensitive(s) {
 
 /* Noise filters: drop obvious header/metadata rows that aren’t failed assertions */
 const NOISE_ASSERTION_NAMES = new Set([
-  "accept","accept-encoding","accept-language","cache-control","connection",
-  "content-length","content-type","cookie","date","host","pragma","referer",
-  "sec-ch-ua","sec-fetch-dest","sec-fetch-mode","sec-fetch-site","user-agent",
-  "postman-token","x-forwarded-for","x-forwarded-proto","x-powered-by",
-  "authorization","x-auth-token","x-correlation-id"
+  "accept",
+  "accept-encoding",
+  "accept-language",
+  "cache-control",
+  "connection",
+  "content-length",
+  "content-type",
+  "cookie",
+  "date",
+  "host",
+  "pragma",
+  "referer",
+  "sec-ch-ua",
+  "sec-fetch-dest",
+  "sec-fetch-mode",
+  "sec-fetch-site",
+  "user-agent",
+  "postman-token",
+  "x-forwarded-for",
+  "x-forwarded-proto",
+  "x-powered-by",
+  "authorization",
+  "x-auth-token",
+  "x-correlation-id",
 ]);
 const NOISE_MESSAGE_REGEXES = [
-  /^\s*$/,                               // empty
-  /^[A-Za-z\-]+:\s?.*$/,                 // "Header-Name: value"
-  /^Bearer\s+[A-Za-z0-9\-\._]+$/i,       // bearer token only
-  /^[A-Za-z0-9+/_-]{32,}$/               // just a long token/blob
+  /^\s*$/, // empty
+  /^[A-Za-z\-]+:\s?.*$/, // "Header-Name: value"
+  /^Bearer\s+[A-Za-z0-9\-\._]+$/i, // bearer token only
+  /^[A-Za-z0-9+/_-]{32,}$/, // just a long token/blob
 ];
 function isNoiseRow(test, message) {
   const t = String(test || "").trim();
@@ -136,7 +159,11 @@ function parseHtmlSummary(html, collectionName) {
   // Fallback: sum Failed column across tables
   const failedFromTable = sumFailedFromTables($);
   if (failedFromTable != null) {
-    const failedKpiNum = getFirstMetricNumber(summary, ["total_failed_tests", "failed_tests", "failed"], null);
+    const failedKpiNum = getFirstMetricNumber(
+      summary,
+      ["total_failed_tests", "failed_tests", "failed"],
+      null
+    );
     if (failedKpiNum === null || failedKpiNum === 0) {
       summary.total_failed_tests = String(failedFromTable);
     }
@@ -189,12 +216,12 @@ function parseFailedTests(reportJson) {
 
   for (const exec of reportJson.run.executions) {
     const requestName = exec.item?.name || "Unknown request";
-    for (const assertion of (exec.assertions || [])) {
+    for (const assertion of exec.assertions || []) {
       if (assertion && assertion.error) {
         failedTests.push({
           request: requestName,
           test: assertion.assertion,
-          message: assertion.error.message
+          message: assertion.error.message,
         });
       }
     }
@@ -216,22 +243,33 @@ function parseFailureDetailsFromHtml(html) {
   cardAnchors.each((_, a) => {
     if (added >= HTML_DETAILS_MAX_ROWS) return false;
     const $a = $(a);
-    const title = $a.text().trim().replace(/\s+/g, ' ');
-    const id = $a.attr('id');
+    const title = $a.text().trim().replace(/\s+/g, " ");
+    const id = $a.attr("id");
 
     // request title: everything after the first two segments (Iteration and ErrorType)
-    const parts = title.split(' - ').map(p => p.trim()).filter(Boolean);
-    let request = parts.length >= 3 ? parts.slice(2).join(' - ') : (parts[parts.length - 1] || 'Unknown request');
+    const parts = title
+      .split(" - ")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    let request =
+      parts.length >= 3 ?
+        parts.slice(2).join(" - ")
+      : parts[parts.length - 1] || "Unknown request";
 
     // find the corresponding card body
-    const $card = $a.closest('.card');
-    const $body = $card.find('.card-body').first();
+    const $card = $a.closest(".card");
+    const $body = $card.find(".card-body").first();
 
     // Test name appears as <h5><strong>Failed Test:</strong> <name></h5>
-    let test = $body.find('h5').first().text().replace(/^\s*Failed\s*Test:\s*/i, '').trim();
+    let test = $body
+      .find("h5")
+      .first()
+      .text()
+      .replace(/^\s*Failed\s*Test:\s*/i, "")
+      .trim();
 
     // Message in <pre><code>
-    let message = $body.find('pre code').first().text().trim();
+    let message = $body.find("pre code").first().text().trim();
 
     if (!test && !message) return; // skip empty
     if (isNoiseRow(test, message)) return;
@@ -278,7 +316,8 @@ function parseFailureDetailsFromHtml(html) {
 
   // NEW: find nearest request context (heading like "Iteration: 1 - Get All" and/or URL)
   function getContextInfo($table) {
-    let req = null, url = null;
+    let req = null,
+      url = null;
 
     const sniff = (el) => {
       const t = $(el).text().trim();
@@ -287,7 +326,12 @@ function parseFailureDetailsFromHtml(html) {
         const m = t.match(/iteration\s*:\s*\d+\s*-\s*(.+)$/i);
         if (m) req = m[1].trim();
       }
-      if (!req && t.length <= 120 && /\b(get|post|put|delete|patch)\b/i.test(t) && /\/[A-Za-z0-9/_\-?&=%.:]+/.test(t)) {
+      if (
+        !req &&
+        t.length <= 120 &&
+        /\b(get|post|put|delete|patch)\b/i.test(t) &&
+        /\/[A-Za-z0-9/_\-?&=%.:]+/.test(t)
+      ) {
         req = t.trim();
       }
       if (!url) {
@@ -297,22 +341,28 @@ function parseFailureDetailsFromHtml(html) {
     };
 
     // look at a few previous siblings
-    let node = $table.prev(), steps = 0;
+    let node = $table.prev(),
+      steps = 0;
     while (node && node.length && steps < 12 && (!req || !url)) {
       sniff(node);
-      node = node.prev(); steps++;
+      node = node.prev();
+      steps++;
     }
 
     // look up parents and their previous siblings
-    let parent = $table.parent(), depth = 0;
+    let parent = $table.parent(),
+      depth = 0;
     while (parent && parent.length && depth < 5 && (!req || !url)) {
       sniff(parent);
-      let ps = parent.prev(), psteps = 0;
+      let ps = parent.prev(),
+        psteps = 0;
       while (ps && ps.length && psteps < 6 && (!req || !url)) {
         sniff(ps);
-        ps = ps.prev(); psteps++;
+        ps = ps.prev();
+        psteps++;
       }
-      parent = parent.parent(); depth++;
+      parent = parent.parent();
+      depth++;
     }
 
     return { req, url };
@@ -321,28 +371,28 @@ function parseFailureDetailsFromHtml(html) {
   const skipTableFallback = hasCardFailures;
   // Pass A: scope to sections whose heading text mentions "Failure"/"Assertion"
   if (!skipTableFallback) {
-  $('h1,h2,h3,h4,h5,h6').each((_, h) => {
-    if (added >= HTML_DETAILS_MAX_ROWS) return false;
-    const title = $(h).text().toLowerCase();
-    if (!/fail|assertion/i.test(title)) return;
+    $("h1,h2,h3,h4,h5,h6").each((_, h) => {
+      if (added >= HTML_DETAILS_MAX_ROWS) return false;
+      const title = $(h).text().toLowerCase();
+      if (!/fail|assertion/i.test(title)) return;
 
-    let node = $(h).next();
-    while (node && node.length && !node.is('h1,h2,h3,h4,h5,h6')) {
-      if (node.is('table')) {
-        harvestTable(node);
-      } else {
-        node.find('table').each((__, t) => harvestTable($(t)));
+      let node = $(h).next();
+      while (node && node.length && !node.is("h1,h2,h3,h4,h5,h6")) {
+        if (node.is("table")) {
+          harvestTable(node);
+        } else {
+          node.find("table").each((__, t) => harvestTable($(t)));
+        }
+        if (added >= HTML_DETAILS_MAX_ROWS) break;
+        node = node.next();
       }
-      if (added >= HTML_DETAILS_MAX_ROWS) break;
-      node = node.next();
-    }
-  });
+    });
 
-  // Pass B: fallback over all tables (in case headings aren’t reliable)
-  $("table").each((_, tbl) => {
-    if (added >= HTML_DETAILS_MAX_ROWS) return false;
-    harvestTable($(tbl));
-  });
+    // Pass B: fallback over all tables (in case headings aren’t reliable)
+    $("table").each((_, tbl) => {
+      if (added >= HTML_DETAILS_MAX_ROWS) return false;
+      harvestTable($(tbl));
+    });
   }
 
   return out;
@@ -353,21 +403,50 @@ function parseFailureDetailsFromHtml(html) {
     const { headers, useBodyHeader } = grabHeaders($tbl);
     if (headers.length === 0) return;
     // Skip generic Name/Value tables (avoid grouping by header names)
-    const isNameValueTable = headers.length === 2 && /^(name|key)$/i.test(headers[0]) && /^value$/i.test(headers[1]);
+    const isNameValueTable =
+      headers.length === 2 &&
+      /^(name|key)$/i.test(headers[0]) &&
+      /^value$/i.test(headers[1]);
     if (isNameValueTable) return;
 
     // Broad header vocab
     const idx = {
-    request: findHeader(headers, ["request", "endpoint", "url", "item", "request name", "api", "path"]),
-    test: findHeader(headers, ["assertion", "test", "test name", "check", "rule"]),
-    message: findHeader(headers, ["error", "message", "detail", "details", "reason", "failure", "error message"]),
-    failed: findHeader(headers, ["failed", "fails"])
+      request: findHeader(headers, [
+        "request",
+        "endpoint",
+        "url",
+        "item",
+        "request name",
+        "api",
+        "path",
+      ]),
+      test: findHeader(headers, [
+        "assertion",
+        "test",
+        "test name",
+        "check",
+        "rule",
+      ]),
+      message: findHeader(headers, [
+        "error",
+        "message",
+        "detail",
+        "details",
+        "reason",
+        "failure",
+        "error message",
+      ]),
+      failed: findHeader(headers, ["failed", "fails"]),
     };
 
     // If we don’t have both test & message, infer 2-col [Assertion | Message] only if headers look like failures
     if (idx.test === -1 || idx.message === -1) {
-      const hasAssertLike = headers.some((h) => /assertion|test|check|rule/i.test(h));
-      const hasMsgLike = headers.some((h) => /error|message|detail|details|reason|failure/i.test(h));
+      const hasAssertLike = headers.some((h) =>
+        /assertion|test|check|rule/i.test(h)
+      );
+      const hasMsgLike = headers.some((h) =>
+        /error|message|detail|details|reason|failure/i.test(h)
+      );
       if (headers.length === 2 && (hasAssertLike || hasMsgLike)) {
         idx.test = 0;
         idx.message = 1;
@@ -400,23 +479,23 @@ function parseFailureDetailsFromHtml(html) {
 
       // Prefer explicit Request column; else use inferred context
       let request =
-        (idx.request !== -1 && idx.request < $cells.length)
-          ? $cells.eq(idx.request).text().trim()
-          : (ctxReq || "Unknown request");
+        idx.request !== -1 && idx.request < $cells.length ?
+          $cells.eq(idx.request).text().trim()
+        : ctxReq || "Unknown request";
 
       if (ctxUrl && !/https?:\/\//i.test(request)) {
         request = `${request} — ${ctxUrl}`;
       }
 
       let test =
-        (idx.test !== -1 && idx.test < $cells.length)
-          ? $cells.eq(idx.test).text().trim()
-          : "Unknown assertion";
+        idx.test !== -1 && idx.test < $cells.length ?
+          $cells.eq(idx.test).text().trim()
+        : "Unknown assertion";
 
       let message =
-        (idx.message !== -1 && idx.message < $cells.length)
-          ? $cells.eq(idx.message).text().trim()
-          : "Failed";
+        idx.message !== -1 && idx.message < $cells.length ?
+          $cells.eq(idx.message).text().trim()
+        : "Failed";
 
       // Filter noise + redact
       if (!test && !message) continue;
@@ -437,19 +516,39 @@ function parseFailureDetailsFromHtml(html) {
 /* ========== 4) Build HTML: overview table + FAILED requests only (grouped) ========== */
 function createSummaryHtml(collections) {
   // Summary table at top (all collections)
-  const showSkipped = collections.some((c) => toNumber(getFirstMetric(c, ["total_skipped_tests", "skipped_tests", "skipped"], "0"), 0) > 0);
-  const rowsHtml = collections.map((col) => {
-    const iterations = getFirstMetric(col, ["total_iterations"], "-");
-    const assertions = getFirstMetric(col, ["total_assertions"], "-");
-    const failedStr = getFirstMetric(col, ["total_failed_tests", "failed_tests", "failed"], null);
-    const failed = failedStr != null
-      ? toNumber(failedStr, 0)
-      : (Array.isArray(col.failures) ? col.failures.length : 0);
-    const skipped = getFirstMetric(col, ["total_skipped_tests", "skipped_tests", "skipped"], "0");
+  const showSkipped = collections.some(
+    (c) =>
+      toNumber(
+        getFirstMetric(
+          c,
+          ["total_skipped_tests", "skipped_tests", "skipped"],
+          "0"
+        ),
+        0
+      ) > 0
+  );
+  const rowsHtml = collections
+    .map((col) => {
+      const iterations = getFirstMetric(col, ["total_iterations"], "-");
+      const assertions = getFirstMetric(col, ["total_assertions"], "-");
+      const failedStr = getFirstMetric(
+        col,
+        ["total_failed_tests", "failed_tests", "failed"],
+        null
+      );
+      const failed =
+        failedStr != null ? toNumber(failedStr, 0)
+        : Array.isArray(col.failures) ? col.failures.length
+        : 0;
+      const skipped = getFirstMetric(
+        col,
+        ["total_skipped_tests", "skipped_tests", "skipped"],
+        "0"
+      );
 
-    col.__failed_normalized = failed;
-    const skippedCell = showSkipped ? `<td>${escapeHtml(skipped)}</td>` : "";
-    return `
+      col.__failed_normalized = failed;
+      const skippedCell = showSkipped ? `<td>${escapeHtml(skipped)}</td>` : "";
+      return `
       <tr>
         <td>${escapeHtml(col.collectionName)}</td>
         <td>${escapeHtml(iterations)}</td>
@@ -458,7 +557,8 @@ function createSummaryHtml(collections) {
         ${skippedCell}
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   const summaryTable = `
     <h1>Newman Test Results Summary</h1>
@@ -498,21 +598,31 @@ function createSummaryHtml(collections) {
       m.get(key).count += 1;
     }
 
-    if (byReq.size === 0) return `<div class="note">No failed request details after filtering.</div>`;
+    if (byReq.size === 0)
+      return `<div class="note">No failed request details after filtering.</div>`;
 
     let html = "";
-    const base = hrefBase ? escapeHtml(String(hrefBase).replace(/\\\\/g, '/')) : null;
+    const base =
+      hrefBase ? escapeHtml(String(hrefBase).replace(/\\\\/g, "/")) : null;
     for (const [req, map] of byReq) {
       const total = Array.from(map.values()).reduce((s, r) => s + r.count, 0);
-      const checks = Array.from(map.values()).map((r) => `
+      const checks = Array.from(map.values())
+        .map(
+          (r) => `
         <li>
           <div class="assert">${escapeHtml(r.test)} <span class="count">×${r.count}</span></div>
           <pre class="msg">${escapeHtml(r.message)}</pre>
         </li>
-      `).join("");
+      `
+        )
+        .join("");
 
       const anchor = reqHref.get(req);
-      const href = base ? (anchor ? `${base}${escapeHtml(anchor)}` : base) : null;
+      const href =
+        base ?
+          anchor ? `${base}${escapeHtml(anchor)}`
+          : base
+        : null;
       html += `
         <details class="req" open>
           <summary>
@@ -529,7 +639,7 @@ function createSummaryHtml(collections) {
     return html;
   }
   // --- end moved function ---
-  
+
   // Details: ONLY collections with failures; ONLY failed requests inside
   const detailBlocks = collections
     .filter((c) => (c.__failed_normalized || 0) > 0)
@@ -542,20 +652,22 @@ function createSummaryHtml(collections) {
         list = col.failures.slice(0, JSON_DETAILS_MAX_ROWS).map((f) => ({
           request: f.request || "Unknown request",
           test: redactSensitive(f.test || "Unknown assertion"),
-          message: redactSensitive(f.message || "Error")
+          message: redactSensitive(f.message || "Error"),
         }));
       } else if (col.__htmlPath && ENABLE_HTML_DETAILS_FALLBACK) {
         try {
           const html = fs.readFileSync(col.__htmlPath, "utf-8");
           list = parseFailureDetailsFromHtml(html);
-        } catch { /* ignore */ }
+        } catch {
+          /* ignore */
+        }
       }
 
       const groupedHtml = renderFailedRequests(list, col.__htmlPath || null);
       const note =
-        Array.isArray(col.failures) && col.failures.length > 0
-          ? `<div class="note">From <code>report.json</code>.</div>`
-          : `<div class="note">Parsed from HTML (no <code>report.json</code> present). Secrets redacted; headers/metadata filtered. Request name/URL inferred from nearby headings.</div>`;
+        Array.isArray(col.failures) && col.failures.length > 0 ?
+          `<div class="note">From <code>report.json</code>.</div>`
+        : `<div class="note">Parsed from HTML (no <code>report.json</code> present). Secrets redacted; headers/metadata filtered. Request name/URL inferred from nearby headings.</div>`;
 
       return `
         <details class="card" open>
@@ -570,8 +682,12 @@ function createSummaryHtml(collections) {
     })
     .join("");
 
-  const totalFailed = collections.reduce((sum, col) => sum + (col.__failed_normalized || 0), 0);
-  const footerHtml = totalFailed === 0 ? "<p><strong>No failed tests 🎉</strong></p>" : "";
+  const totalFailed = collections.reduce(
+    (sum, col) => sum + (col.__failed_normalized || 0),
+    0
+  );
+  const footerHtml =
+    totalFailed === 0 ? "<p><strong>No failed tests 🎉</strong></p>" : "";
 
   return `
     <html>
@@ -634,8 +750,9 @@ function run() {
       const html = fs.readFileSync(reportHtmlPath, "utf-8");
 
       const jsonPath = path.join(dir, "report.json");
-      const json = fs.existsSync(jsonPath)
-        ? JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
+      const json =
+        fs.existsSync(jsonPath) ?
+          JSON.parse(fs.readFileSync(jsonPath, "utf-8"))
         : null;
 
       const collectionName = path.basename(dir);

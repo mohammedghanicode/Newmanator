@@ -1,94 +1,83 @@
-⚡ Newmanator
+⚡ Newmanator Web UI
 
-> **Newmanator** — a smart, one-command tool for collating Newman test reports into a single, interactive **HTML summary**.
+Web interface for the Newmanator Newman report collation tool.
 
----
+Setup Instructions
+Copy the files to your Newmanator directory:
 
-🧠 Overview
+server.js - Express.js API server
 
-If you use **Postman + Newman** for API testing, you already know the pain of juggling multiple JSON or HTML reports.  
-**Newmanator** takes care of that — automatically.
+package.json - Node.js dependencies
 
-Just **run one PowerShell script**, pick your zipped Newman reports, — and a neat `summary.html` report opens right in your browser.
+Copy the index.html from the web app to public/index.html
 
----
+Install dependencies:
 
-🚀 Features
-
-- 🧩 **One-click automation** — run once, collate everything.
-- 🗂️ **Zip support** — simply select a zip file of multiple Newman reports.
-- 📊 **HTML summary output** — view results instantly in your browser.
-- ⚙️ **No manual setup** — zero config required, just run and relax.
-- 🧠 **Smart merge logic** — combines multiple collections and runs into one unified summary.
-
----
-
-🖥️ How It Works
-
-```
-1. Run the PowerShell script:
-powershell
-./run-reporter.ps1
-2. Browse for the zip file containing the newman reports and click OK
-3. A browser window will open containing the collated report
-```
-
----
-
-⚙️ Installation
-git clone https://github.com/mohammedghanicode/Newmanator.git
-cd Newmanator
+bash
 npm install
+Ensure your existing files are present:
 
-🧪 Usage
-Combine multiple reports:
+process-files.js (your enhanced multi-file processor)
 
-node index.js --input ./reports --output ./summary.json
+summarise.js (your enhanced version with collection name fix)
 
-| Flag        | Description                               |
-| ----------- | ----------------------------------------- |
-| `--input`   | Directory of Newman report files          |
-| `--output`  | Output file path                          |
-| `--format`  | Specify output type (`json`, `csv`, etc.) |
-| `--verbose` | Print detailed process logs               |
+package.json with required dependencies (adm-zip, cheerio)
 
-🧰 Project Structure
+Start the server:
 
+bash
+npm start
+# or for development with auto-restart:
+npm run dev
+Access the web UI:
+Open http://localhost:3000 in your browser
+
+Directory Structure
+text
 Newmanator/
-├── run-reporter.ps1 # Main entry point (PowerShell automation)
-├── process-zip.js # Handles zip extraction and data merge
-├── index.js # Collation and HTML generation logic
-├── index.test.js # Tests (optional)
-├── package.json # Dependencies and scripts
-└── README.md # You're reading it :)
+├── server.js                 # Web server (NEW)</br>
+├── package.json              # Dependencies (UPDATED)</br>
+├── public/                   # Static web files (NEW)
+│   └── index.html           # Web UI
+├── process-files.js          # Your existing multi-file processor
+├── summarise.js              # Your enhanced version with collection names
+├── process-zip.js            # Your existing ZIP processor (still used by PS1)
+├── run-reporter.ps1          # Your enhanced PowerShell script
+├── uploads/                  # Temporary upload storage (auto-created)
+└── results/                  # Processing results (auto-created)
+API Endpoints
+POST /api/upload - Upload files for processing
 
-📦 Dependencies
+GET /api/status/:sessionId - Check processing status
 
-[Node.js](https://nodejs.org/) >= 18 ```
-[Newman](https://www.npmjs.com/package/newman) (for report generation)
+GET /api/results/:sessionId - Get processing results
 
-🧑‍💻 Author
+GET /api/download/:sessionId - Download summary.html
 
-Mohammed Ghani
-📧 Mo Ghani
-🌐 [Github](https://github.com/mohammedghanicode)
+GET /api/events/:sessionId - Server-sent events for real-time updates
 
-🪪 License
+Features
+Multi-file upload - Drag & drop .zip and .html files
 
-MIT
+Real-time progress - Live updates during processing
 
-💬 Contributing
+Proper collection names - Uses your enhanced summarise.js
 
-Pull requests are welcome!
-For major changes, please open an issue first to discuss what you’d like to change.
+Download results - Generated summary.html files
 
-🌟 Future Roadmap
+Clean UI - Professional interface matching your preferences
 
-- Add HTML report output
-- Add CI/CD integration examples
-- Include Slack/Email notifications
-- Build simple UI dashboard for visualization
+How It Works
+Files uploaded through web UI → /uploads/[sessionId]/
 
-❤️ Show some love
+Server calls your process-files.js with uploaded files
 
-If you find this project useful, consider leaving a ⭐️ — it helps a ton!
+Server calls your summarise.js to generate summary
+
+Generated summary.html moved to /results/[sessionId]/
+
+User can view/download results through web UI
+
+Temporary files cleaned up automatically
+
+The web server integrates seamlessly with your existing PowerShell workflow and enhanced processing pipeline!

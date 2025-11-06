@@ -2,20 +2,27 @@
   "name": "newmanator",
   "version": "1.0.0",
   "main": "index.js",
+  "description": "⚡ Newmanator - Newman report collation tool with web UI",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "powershell": "powershell -ExecutionPolicy Bypass -File run-reporter.ps1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "⚡ Newmanator",
+  "keywords": ["newman", "postman", "testing", "reports", "api", "collation"],
+  "author": "Mohammed Ghani",
+  "license": "MIT",
   "dependencies": {
     "adm-zip": "^0.5.16",
     "cheerio": "^1.1.2",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "express": "^4.18.2",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "nodemon": "^3.0.1"
   },
   "repository": {
     "type": "git",
@@ -25,5 +32,8 @@
   "bugs": {
     "url": "https://github.com/mohammedghanicode/Newmanator/issues"
   },
-  "homepage": "https://github.com/mohammedghanicode/Newmanator#readme"
+  "homepage": "https://github.com/mohammedghanicode/Newmanator#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
