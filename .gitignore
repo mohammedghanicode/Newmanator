@@ -138,6 +138,8 @@ dist
 # Custom ignored files
 reports/
 unzipped/
+reports/
+results/
 uploads/
 zips/
 .qodo/
