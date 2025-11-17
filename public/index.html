@@ -150,6 +150,7 @@
   --container-xl: 1280px;
 }
 
+<<<<<<< HEAD
 /* Force light mode - disable dark mode */
 
 @font-face {
@@ -421,18 +422,345 @@ body {
     padding: var(--space-12) var(--space-32);
     background-color: #3b82f6;
     color: #ffffff;
+=======
+/* Dark mode colors */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-gray-400-rgb: 119, 124, 124;
+    --color-teal-300-rgb: 50, 184, 198;
+    --color-gray-300-rgb: 167, 169, 169;
+    --color-gray-200-rgb: 245, 245, 245;
+
+    --color-bg-1: rgba(29, 78, 216, 0.15);
+    --color-bg-2: rgba(180, 83, 9, 0.15);
+    --color-bg-3: rgba(21, 128, 61, 0.15);
+    --color-bg-4: rgba(185, 28, 28, 0.15);
+    --color-bg-5: rgba(107, 33, 168, 0.15);
+    --color-bg-6: rgba(194, 65, 12, 0.15);
+    --color-bg-7: rgba(190, 24, 93, 0.15);
+    --color-bg-8: rgba(8, 145, 178, 0.15);
+
+    --color-background: var(--color-charcoal-700);
+    --color-surface: var(--color-charcoal-800);
+    --color-text: var(--color-gray-200);
+    --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+    --color-primary: var(--color-teal-300);
+    --color-primary-hover: var(--color-teal-400);
+    --color-primary-active: var(--color-teal-800);
+    --color-secondary: rgba(var(--color-gray-400-rgb), 0.15);
+    --color-secondary-hover: rgba(var(--color-gray-400-rgb), 0.25);
+    --color-secondary-active: rgba(var(--color-gray-400-rgb), 0.3);
+    --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+    --color-error: var(--color-red-400);
+    --color-success: var(--color-teal-300);
+    --color-warning: var(--color-orange-400);
+    --color-info: var(--color-gray-300);
+    --color-focus-ring: rgba(var(--color-teal-300-rgb), 0.4);
+    --color-btn-primary-text: var(--color-slate-900);
+    --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+    --color-card-border-inner: rgba(var(--color-gray-400-rgb), 0.15);
+    --shadow-inset-sm: inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.15);
+    --color-select-caret: rgba(var(--color-gray-200-rgb), 0.8);
+
+    --color-success-rgb: var(--color-teal-300-rgb);
+    --color-error-rgb: var(--color-red-400-rgb);
+    --color-warning-rgb: var(--color-orange-400-rgb);
+    --color-info-rgb: var(--color-gray-300-rgb);
+  }
+}
+
+@font-face {
+  font-family: 'FKGroteskNeue';
+  src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2')
+    format('woff2');
+}
+
+/* Base styles */
+html {
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  background-color: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Custom Styles */
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-card-border);
+    padding: var(--space-20) var(--space-32);
+    box-shadow: var(--shadow-sm);
+}
+
+.header-content {
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-16);
+}
+
+.logo {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+}
+
+.logo-icon {
+    font-size: 32px;
+}
+
+.main-content {
+    flex: 1;
+    padding: var(--space-32);
+    max-width: var(--container-xl);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.hero-section {
+    text-align: center;
+    margin-bottom: var(--space-32);
+}
+
+.hero-title {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-16);
+    color: var(--color-text);
+}
+
+.hero-description {
+    font-size: var(--font-size-lg);
+    color: var(--color-text-secondary);
+    max-width: 700px;
+    margin: 0 auto var(--space-32);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-16);
+    margin-bottom: var(--space-32);
+}
+
+.feature-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-20);
+    box-shadow: var(--shadow-sm);
+}
+
+.feature-card h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-8);
+    color: var(--color-text);
+}
+
+.feature-card p {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.upload-section {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-32);
+    margin-bottom: var(--space-24);
+    box-shadow: var(--shadow-md);
+}
+
+.drop-zone {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-32);
+    text-align: center;
+    background-color: var(--color-bg-1);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.drop-zone:hover {
+    border-color: var(--color-primary);
+    background-color: var(--color-bg-8);
+}
+
+.drop-zone.drag-over {
+    border-color: var(--color-primary);
+    background-color: var(--color-bg-3);
+    border-style: solid;
+}
+
+.drop-zone-icon {
+    font-size: 48px;
+    margin-bottom: var(--space-16);
+}
+
+.drop-zone-text {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-8);
+}
+
+.drop-zone-subtext {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-16);
+}
+
+.browse-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-10) var(--space-20);
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+    border: none;
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-standard);
+}
+
+.browse-button:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.browse-button:active {
+    background-color: var(--color-primary-active);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-list {
+    margin-top: var(--space-24);
+}
+
+.file-list-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-16);
+    color: var(--color-text);
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-12) var(--space-16);
+    background-color: var(--color-background);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+    margin-bottom: var(--space-8);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+    flex: 1;
+}
+
+.file-icon {
+    font-size: var(--font-size-2xl);
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text);
+    margin-bottom: var(--space-2);
+}
+
+.file-size {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.remove-button {
+    padding: var(--space-6) var(--space-12);
+    background-color: transparent;
+    color: var(--color-error);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--duration-fast) var(--ease-standard);
+}
+
+.remove-button:hover {
+    background-color: rgba(var(--color-error-rgb), 0.1);
+    border-color: var(--color-error);
+}
+
+.action-buttons {
+    display: flex;
+    gap: var(--space-16);
+    justify-content: center;
+    margin-top: var(--space-24);
+}
+
+.process-button {
+    padding: var(--space-12) var(--space-32);
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border: none;
     border-radius: var(--radius-base);
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     transition: all var(--duration-normal) var(--ease-standard);
+<<<<<<< HEAD
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .process-button:hover:not(:disabled) {
     background-color: #2563eb;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+=======
+    box-shadow: var(--shadow-sm);
+}
+
+.process-button:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    box-shadow: var(--shadow-md);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .process-button:disabled {
@@ -442,9 +770,15 @@ body {
 
 .clear-button {
     padding: var(--space-12) var(--space-24);
+<<<<<<< HEAD
     background-color: #ffffff;
     color: #374151;
     border: 1px solid #d1d5db;
+=======
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border-radius: var(--radius-base);
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-medium);
@@ -453,17 +787,30 @@ body {
 }
 
 .clear-button:hover {
+<<<<<<< HEAD
     background-color: #f3f4f6;
 }
 
 .processing-section {
     background-color: #ffffff;
     border: 1px solid #e5e7eb;
+=======
+    background-color: var(--color-secondary-hover);
+}
+
+.processing-section {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border-radius: var(--radius-lg);
     padding: var(--space-32);
     text-align: center;
     margin-bottom: var(--space-24);
+<<<<<<< HEAD
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+=======
+    box-shadow: var(--shadow-md);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .processing-icon {
@@ -474,20 +821,32 @@ body {
 .processing-title {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-semibold);
+<<<<<<< HEAD
     color: #1f2937;
+=======
+    color: var(--color-text);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     margin-bottom: var(--space-12);
 }
 
 .processing-text {
     font-size: var(--font-size-base);
+<<<<<<< HEAD
     color: #6b7280;
+=======
+    color: var(--color-text-secondary);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     margin-bottom: var(--space-24);
 }
 
 .progress-bar {
     width: 100%;
     height: 8px;
+<<<<<<< HEAD
     background-color: #e5e7eb;
+=======
+    background-color: var(--color-secondary);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border-radius: var(--radius-full);
     overflow: hidden;
     margin-bottom: var(--space-16);
@@ -495,7 +854,11 @@ body {
 
 .progress-fill {
     height: 100%;
+<<<<<<< HEAD
     background-color: #3b82f6;
+=======
+    background-color: var(--color-primary);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     transition: width var(--duration-normal) var(--ease-standard);
 }
 
@@ -511,16 +874,28 @@ body {
     gap: var(--space-12);
     padding: var(--space-8) 0;
     font-size: var(--font-size-base);
+<<<<<<< HEAD
     color: #9ca3af;
 }
 
 .step-item.active {
     color: #3b82f6;
+=======
+    color: var(--color-text-secondary);
+}
+
+.step-item.active {
+    color: var(--color-primary);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     font-weight: var(--font-weight-medium);
 }
 
 .step-item.completed {
+<<<<<<< HEAD
     color: #10b981;
+=======
+    color: var(--color-success);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .step-number {
@@ -530,6 +905,7 @@ body {
     width: 24px;
     height: 24px;
     border-radius: 50%;
+<<<<<<< HEAD
     background-color: #e5e7eb;
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
@@ -553,6 +929,30 @@ body {
     padding: var(--space-32);
     margin-bottom: var(--space-24);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+=======
+    background-color: var(--color-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.step-item.active .step-number {
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+}
+
+.step-item.completed .step-number {
+    background-color: var(--color-success);
+    color: var(--color-btn-primary-text);
+}
+
+.results-section {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-32);
+    margin-bottom: var(--space-24);
+    box-shadow: var(--shadow-md);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .results-header {
@@ -568,12 +968,17 @@ body {
 .results-title {
     font-size: var(--font-size-2xl);
     font-weight: var(--font-weight-semibold);
+<<<<<<< HEAD
     color: #10b981;
+=======
+    color: var(--color-success);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     margin-bottom: var(--space-8);
 }
 
 .results-message {
     font-size: var(--font-size-base);
+<<<<<<< HEAD
     color: #6b7280;
 }
 
@@ -592,6 +997,36 @@ body {
     height: 600px;
     border: none;
     display: block;
+=======
+    color: var(--color-text-secondary);
+}
+
+.results-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-16);
+    margin-bottom: var(--space-32);
+}
+
+.stat-card {
+    background-color: var(--color-bg-1);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-base);
+    padding: var(--space-16);
+    text-align: center;
+}
+
+.stat-value {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .results-actions {
@@ -606,8 +1041,13 @@ body {
     align-items: center;
     gap: var(--space-8);
     padding: var(--space-12) var(--space-24);
+<<<<<<< HEAD
     background-color: #3b82f6;
     color: #ffffff;
+=======
+    background-color: var(--color-primary);
+    color: var(--color-btn-primary-text);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border: none;
     border-radius: var(--radius-base);
     font-size: var(--font-size-base);
@@ -615,19 +1055,34 @@ body {
     cursor: pointer;
     transition: all var(--duration-normal) var(--ease-standard);
     text-decoration: none;
+<<<<<<< HEAD
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .download-button:hover {
     background-color: #2563eb;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+=======
+    box-shadow: var(--shadow-sm);
+}
+
+.download-button:hover {
+    background-color: var(--color-primary-hover);
+    box-shadow: var(--shadow-md);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .new-batch-button {
     padding: var(--space-12) var(--space-24);
+<<<<<<< HEAD
     background-color: #ffffff;
     color: #374151;
     border: 1px solid #d1d5db;
+=======
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
     border-radius: var(--radius-base);
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-medium);
@@ -636,7 +1091,11 @@ body {
 }
 
 .new-batch-button:hover {
+<<<<<<< HEAD
     background-color: #f3f4f6;
+=======
+    background-color: var(--color-secondary-hover);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .alert {
@@ -650,9 +1109,15 @@ body {
 }
 
 .alert-error {
+<<<<<<< HEAD
     background-color: #fef2f2;
     color: #dc2626;
     border: 1px solid #fecaca;
+=======
+    background-color: rgba(var(--color-error-rgb), 0.1);
+    color: var(--color-error);
+    border: 1px solid rgba(var(--color-error-rgb), 0.3);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 }
 
 .alert-icon {
@@ -748,12 +1213,18 @@ body {
             <div id="uploadSection" class="upload-section">
                 <div id="dropZone" class="drop-zone">
                     <div class="drop-zone-icon">📂</div>
+<<<<<<< HEAD
                     <div class="drop-zone-text">Drag &amp; drop your Newman reports here</div>
                     <div class="drop-zone-subtext">Supports .zip and .html files (up to 500MB per file)</div>
                     <button class="browse-button" id="browseButton">
+=======
+                    <div class="drop-zone-text">Drag your Newman reports here</div>
+                    <div class="drop-zone-subtext">Supports .zip and .html files</div>
+                    <button class="browse-button" onclick="document.getElementById('fileInput').click()">
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                         Browse Files
                     </button>
-                    <input type="file" id="fileInput" class="file-input" multiple accept=".zip,.html">
+                    <input type="file" id="fileInput" class="file-input" multiple accept=".zip,.html" onchange="handleFileSelect(event)">
                 </div>
 
                 <div id="fileListContainer" class="file-list hidden">
@@ -811,8 +1282,24 @@ body {
                     <p class="results-message">Your Newman reports have been collated into a unified summary</p>
                 </div>
 
+<<<<<<< HEAD
                 <div class="results-iframe-container">
                     <iframe id="resultsIframe" class="results-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+=======
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="filesProcessed">0</div>
+                        <div class="stat-label">Files Processed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalTests">0</div>
+                        <div class="stat-label">Total Tests</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="passedTests">0</div>
+                        <div class="stat-label">Tests Passed</div>
+                    </div>
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                 </div>
 
                 <div class="results-actions">
@@ -831,7 +1318,9 @@ body {
         let selectedFiles = [];
         let processingId = null;
         let eventSource = null;
+        const API_BASE = 'http://localhost:3000/api';
 
+<<<<<<< HEAD
         // Initialize event listeners after DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Browse button - single event listener
@@ -861,6 +1350,20 @@ body {
             dropZone.classList.remove('drag-over');
         });
 
+=======
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
@@ -868,6 +1371,37 @@ body {
             const files = Array.from(e.dataTransfer.files);
             addFiles(files);
         });
+
+<<<<<<< HEAD
+        // Add files to selection
+        function addFiles(files) {
+            const validFiles = files.filter(file => {
+                const ext = file.name.toLowerCase();
+                return ext.endsWith('.zip') || ext.endsWith('.html');
+            });
+
+            if (validFiles.length === 0) {
+                showError('Please select valid .zip or .html files');
+                return;
+            }
+
+            // Add to selected files
+            validFiles.forEach(file => {
+                if (!selectedFiles.some(f => f.name === file.name)) {
+                    selectedFiles.push(file);
+                }
+            });
+
+            hideError();
+            updateFileList();
+        }
+
+=======
+        // File selection handler
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            addFiles(files);
+        }
 
         // Add files to selection
         function addFiles(files) {
@@ -892,6 +1426,7 @@ body {
             updateFileList();
         }
 
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
         // Update file list display
         function updateFileList() {
             const fileList = document.getElementById('fileList');
@@ -982,7 +1517,11 @@ body {
                 });
 
                 console.log('Uploading files to backend...');
+<<<<<<< HEAD
                 const uploadResponse = await fetch('/api/upload', {
+=======
+                const uploadResponse = await fetch(`${API_BASE}/upload`, {
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                     method: 'POST',
                     body: formData
                 });
@@ -1005,12 +1544,18 @@ body {
                 // Connect to Server-Sent Events for real-time updates
                 await connectToEventStream(sessionId);
 
+<<<<<<< HEAD
                 // Get the actual session ID after processing
                 const actualSessionId = processingId;
 
                 // Hide processing, show results
                 processingSection.classList.add('hidden');
                 await showResults(actualSessionId);
+=======
+                // Hide processing, show results
+                processingSection.classList.add('hidden');
+                await showResults(id);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
 
             } catch (error) {
                 console.error('Processing error:', error);
@@ -1030,9 +1575,15 @@ body {
         // Connect to Server-Sent Events stream
         async function connectToEventStream(sessionId) {
             return new Promise((resolve, reject) => {
+<<<<<<< HEAD
                 console.log('Connecting to event stream:', `/api/events/${sessionId}`);
                 
                 eventSource = new EventSource(`/api/events/${sessionId}`);
+=======
+                console.log('Connecting to event stream:', `${API_BASE}/events/${sessionId}`);
+                
+                eventSource = new EventSource(`${API_BASE}/events/${sessionId}`);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                 
                 eventSource.onopen = () => {
                     console.log('Event stream connected');
@@ -1126,7 +1677,11 @@ body {
             
             while (true) {
                 try {
+<<<<<<< HEAD
                     const response = await fetch(`/api/status/${id}`);
+=======
+                    const response = await fetch(`${API_BASE}/status/${id}`);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                     
                     if (!response.ok) {
                         const errorText = await response.text();
@@ -1168,7 +1723,11 @@ body {
             console.log('Fetching results for:', id);
             
             try {
+<<<<<<< HEAD
                 const response = await fetch(`/api/results/${id}`);
+=======
+                const response = await fetch(`${API_BASE}/results/${id}`);
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -1179,6 +1738,7 @@ body {
                 const results = await response.json();
                 console.log('Results received:', results);
                 
+<<<<<<< HEAD
                 // Display results section
                 const resultsSection = document.getElementById('resultsSection');
                 resultsSection.classList.remove('hidden');
@@ -1196,12 +1756,26 @@ body {
                 // Set download link to actual summary file from backend
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = `/api/download/${id}`;
+=======
+                const resultsSection = document.getElementById('resultsSection');
+                resultsSection.classList.remove('hidden');
+
+                // Update statistics from actual backend results
+                document.getElementById('filesProcessed').textContent = results.filesProcessed || results.stats?.filesProcessed || selectedFiles.length;
+                document.getElementById('totalTests').textContent = results.totalTests || results.stats?.totalTests || 'N/A';
+                document.getElementById('passedTests').textContent = results.passedTests || results.stats?.passedTests || 'N/A';
+
+                // Set download link to actual summary file from backend
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = `${API_BASE}/download/${id}`;
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                 downloadLink.download = 'summary.html';
                 
                 console.log('Download link set to:', downloadLink.href);
 
             } catch (error) {
                 console.error('Results error:', error);
+<<<<<<< HEAD
                 // Show results section but still allow download
                 const resultsSection = document.getElementById('resultsSection');
                 resultsSection.classList.remove('hidden');
@@ -1213,6 +1787,19 @@ body {
                 // Still provide download link - the file should exist even if HTML fetch failed
                 const downloadLink = document.getElementById('downloadLink');
                 downloadLink.href = `/api/download/${id}`;
+=======
+                // Show results section with default values but still allow download
+                const resultsSection = document.getElementById('resultsSection');
+                resultsSection.classList.remove('hidden');
+                
+                document.getElementById('filesProcessed').textContent = selectedFiles.length;
+                document.getElementById('totalTests').textContent = 'N/A';
+                document.getElementById('passedTests').textContent = 'N/A';
+
+                // Still provide download link - the file should exist even if stats extraction failed
+                const downloadLink = document.getElementById('downloadLink');
+                downloadLink.href = `${API_BASE}/download/${id}`;
+>>>>>>> parent of a70e1e9 (Fixed - Fully functional)
                 downloadLink.download = 'summary.html';
                 
                 console.warn('Showing results with download link despite error');
