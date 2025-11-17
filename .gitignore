@@ -138,9 +138,23 @@ dist
 # Custom ignored files
 reports/
 unzipped/
+<<<<<<< HEAD
+reports/
+results/
 uploads/
+=======
+>>>>>>> main
 zips/
 .qodo/
 summary.html
 summary*
+
+agent*
+control*
+security*
+internal*
+temp*
+portal*
+gateway*
+postman-tests*
 public/indexworking.oldUI
