@@ -1,7 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const { spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { spawn } = require("child_process");
+const path = require("path");
+const fs = require("fs");
 
 let mainWindow;
 
@@ -12,100 +12,110 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, "preload.js"),
     },
-    icon: path.join(__dirname, 'assets', 'icon.png'),
-    title: '⚡ Newmanator'
+    icon: path.join(__dirname, "assets", "icon.png"),
+    title: "⚡ Newmanator",
   });
 
-  mainWindow.loadFile('index.html');
-  
+  mainWindow.loadFile("index.html");
+
   // Open DevTools in development
   // mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', () => {
+app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }
 });
 
 // Handle file selection
-ipcMain.handle('select-files', async () => {
+ipcMain.handle("select-files", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile', 'multiSelections'],
+    properties: ["openFile", "multiSelections"],
     filters: [
-      { name: 'Newman Reports', extensions: ['zip', 'html'] },
-      { name: 'ZIP Files', extensions: ['zip'] },
-      { name: 'HTML Files', extensions: ['html'] },
-      { name: 'All Files', extensions: ['*'] }
-    ]
+      { name: "Newman Reports", extensions: ["zip", "html"] },
+      { name: "ZIP Files", extensions: ["zip"] },
+      { name: "HTML Files", extensions: ["html"] },
+      { name: "All Files", extensions: ["*"] },
+    ],
   });
-  
+
   if (result.canceled) {
     return null;
   }
-  
+
   return result.filePaths;
 });
 
 // Handle PowerShell execution
-ipcMain.handle('process-files', async (event, filePaths) => {
+ipcMain.handle("process-files", async (event, filePaths) => {
   return new Promise((resolve, reject) => {
-    // Prepare PowerShell arguments
+    // Build PowerShell command with proper array syntax
+    // PowerShell syntax: -InputPaths @("file1", "file2", "file3")
+    const psArrayString =
+      "@(" + filePaths.map((p) => `"${p}"`).join(", ") + ")";
+
+    // Build the full command as a single string
+    const psCommand = `& "${path.join(__dirname, "run-reporter.ps1")}" -InputPaths ${psArrayString}`;
+
+    console.log("Executing PowerShell command:", psCommand);
+
     const args = [
-      '-ExecutionPolicy', 'Bypass',
-      '-NoProfile',
-      '-File', path.join(__dirname, 'run-reporter.ps1'),
-      '-InputPaths'
-    ].concat(filePaths);
-    
+      "-ExecutionPolicy",
+      "Bypass",
+      "-NoProfile",
+      "-Command",
+      psCommand,
+    ];
+
     // Spawn PowerShell process
-    const ps = spawn('powershell.exe', args, {
-      cwd: __dirname
+    const ps = spawn("powershell.exe", args, {
+      cwd: __dirname,
     });
-    
-    let stdout = '';
-    let stderr = '';
-    
+
+    let stdout = "";
+    let stderr = "";
+
     // Capture output
-    ps.stdout.on('data', (data) => {
+    ps.stdout.on("data", (data) => {
       const output = data.toString();
       stdout += output;
       // Send real-time updates to renderer
-      mainWindow.webContents.send('process-output', output);
+      mainWindow.webContents.send("process-output", output);
     });
-    
-    ps.stderr.on('data', (data) => {
+
+    ps.stderr.on("data", (data) => {
       const error = data.toString();
       stderr += error;
-      mainWindow.webContents.send('process-error', error);
+      mainWindow.webContents.send("process-error", error);
     });
-    
-    ps.on('close', (code) => {
+
+    ps.on("close", (code) => {
       if (code === 0) {
         // Check if summary.html exists
-        const summaryPath = path.join(__dirname, 'summary.html');
+        const summaryPath = path.join(__dirname, "summary.html");
         if (fs.existsSync(summaryPath)) {
           resolve({
             success: true,
             summaryPath: summaryPath,
-            output: stdout
+            output: stdout,
           });
         } else {
           reject({
             success: false,
-            error: 'summary.html was not generated',
+            error: "summary.html was not generated",
             output: stdout,
-            errorOutput: stderr
+            errorOutput: stderr,
           });
         }
       } else {
@@ -113,25 +123,25 @@ ipcMain.handle('process-files', async (event, filePaths) => {
           success: false,
           error: `PowerShell exited with code ${code}`,
           output: stdout,
-          errorOutput: stderr
+          errorOutput: stderr,
         });
       }
     });
-    
-    ps.on('error', (error) => {
+
+    ps.on("error", (error) => {
       reject({
         success: false,
-        error: error.message
+        error: error.message,
       });
     });
   });
 });
 
 // Handle opening summary
-ipcMain.handle('open-summary', async () => {
-  const summaryPath = path.join(__dirname, 'summary.html');
+ipcMain.handle("open-summary", async () => {
+  const summaryPath = path.join(__dirname, "summary.html");
   if (fs.existsSync(summaryPath)) {
-    require('electron').shell.openPath(summaryPath);
+    require("electron").shell.openPath(summaryPath);
     return true;
   }
   return false;
