@@ -551,7 +551,6 @@ function createSummaryHtml(collections) {
       return `
       <tr>
         <td>${escapeHtml(col.collectionName)}</td>
-        <td>${escapeHtml(iterations)}</td>
         <td>${escapeHtml(assertions)}</td>
         <td class="fail">${failed}</td>
         ${skippedCell}
@@ -565,7 +564,6 @@ function createSummaryHtml(collections) {
     <table>
       <tr>
         <th>Collection</th>
-        <th>Iterations</th>
         <th>Assertions</th>
         <th>Failed</th>
         ${showSkipped ? "<th>Skipped</th>" : ""}
