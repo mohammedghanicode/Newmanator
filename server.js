@@ -72,7 +72,7 @@ app.post("/api/upload", upload.array("files", 20), (req, res) => {
 
     console.log(`🚀 DIAGNOSTIC: Starting processing for session ${sessionId}`);
     console.log(
-      `📁 Files uploaded: ${files.map((f) => f.originalname).join(", ")}`
+      `Files uploaded: ${files.map((f) => f.originalname).join(", ")}`
     );
 
     if (!files || files.length === 0) {
@@ -120,7 +120,7 @@ app.get("/api/results/:sessionId", (req, res) => {
   const { sessionId } = req.params;
   const resultsPath = path.join(RESULTS_DIR, sessionId, "summary.html");
 
-  console.log(`🔍 DIAGNOSTIC: Looking for results at: ${resultsPath}`);
+  console.log(`DIAGNOSTIC: Looking for results at: ${resultsPath}`);
 
   if (!fs.existsSync(resultsPath)) {
     return res.status(404).json({ error: "Results not found" });
@@ -128,7 +128,7 @@ app.get("/api/results/:sessionId", (req, res) => {
 
   const htmlContent = fs.readFileSync(resultsPath, "utf8");
   console.log(
-    `📊 DIAGNOSTIC: Results found, length: ${htmlContent.length} characters`
+    `DIAGNOSTIC: Results found, length: ${htmlContent.length} characters`
   );
 
   res.json({
@@ -187,8 +187,8 @@ app.get("/api/events/:sessionId", (req, res) => {
 // DIAGNOSTIC: Enhanced processing function with detailed logging
 async function processFiles(sessionId, uploadDir, files) {
   try {
-    console.log(`🔧 DIAGNOSTIC: Processing files for session ${sessionId}`);
-    console.log(`📁 Upload directory: ${uploadDir}`);
+    console.log(`DIAGNOSTIC: Processing files for session ${sessionId}`);
+    console.log(`Upload directory: ${uploadDir}`);
     console.log(
       `📋 Files to process: ${files.map((f) => f.originalname).join(", ")}`
     );
@@ -207,7 +207,7 @@ async function processFiles(sessionId, uploadDir, files) {
     if (!fs.existsSync(sessionResultsDir)) {
       fs.mkdirSync(sessionResultsDir, { recursive: true });
     }
-    console.log(`📁 Session results directory: ${sessionResultsDir}`);
+    console.log(`Session results directory: ${sessionResultsDir}`);
 
     // Update status: processing
     updateStatus(
@@ -229,9 +229,8 @@ async function processFiles(sessionId, uploadDir, files) {
     }
 
     // Call process-files.js
-    console.log(`🚀 DIAGNOSTIC: Calling process-files.js...`);
-    const processCmd = `node process-files.js ${fileArgs.map((f) => `"${f}"`).join(" ")}`;
-    console.log(`📋 Command: ${processCmd}`);
+    console.log(`DIAGNOSTIC: Calling process-files.js...`);
+    const processCmd = `node --max-old-space-size=4096 process-files.js ${fileArgs.map((f) => `"${f}"`).join(" ")}`;
     await executeCommand(processCmd);
 
     // Update status: collation
@@ -250,8 +249,8 @@ async function processFiles(sessionId, uploadDir, files) {
     }
 
     // Call summarise.js
-    console.log(`🚀 DIAGNOSTIC: Calling summarise.js...`);
-    await executeCommand("node summarise.js");
+    console.log(`DIAGNOSTIC: Calling summarise.js...`);
+    await executeCommand("node --max-old-space-size=4096 summarise.js");
 
     // Check if summary.html was generated
     const sourceSummary = path.join(__dirname, "summary.html");
@@ -316,7 +315,7 @@ async function processFiles(sessionId, uploadDir, files) {
 // Helper function to execute shell commands with detailed logging
 function executeCommand(command, cwd = __dirname) {
   return new Promise((resolve, reject) => {
-    console.log(`🚀 DIAGNOSTIC: Executing: ${command} in ${cwd}`);
+    console.log(`DIAGNOSTIC: Executing: ${command} in ${cwd}`);
     exec(command, { cwd }, (error, stdout, stderr) => {
       if (error) {
         console.error(`❌ DIAGNOSTIC: Command failed: ${command}`, error);
@@ -363,13 +362,11 @@ app.use((error, req, res, next) => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Newmanator server running at http://localhost:${PORT}`);
-  console.log(`📁 Upload directory: ${UPLOAD_DIR}`);
-  console.log(`📊 Results directory: ${RESULTS_DIR}`);
-  console.log(`📦 Maximum file size: 500MB`);
-  console.log(
-    `💡 Uses your existing process-files.js and summarise.js pipeline`
-  );
+  console.log(`Newmanator server running at http://localhost:${PORT}`);
+  console.log(`Upload directory: ${UPLOAD_DIR}`);
+  console.log(`Results directory: ${RESULTS_DIR}`);
+  console.log(`Maximum file size: 500MB`);
+  console.log(`Uses your existing process-files.js and summarise.js pipeline`);
 });
 
 module.exports = app;
