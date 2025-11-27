@@ -134,6 +134,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+package-lock.json
 
 # Custom ignored files
 reports/
@@ -158,3 +159,7 @@ portal*
 gateway*
 postman-tests*
 public/indexworking.oldUI
+
+# OS
+.DS_Store
+Thumbs.db
