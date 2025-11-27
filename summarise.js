@@ -149,7 +149,11 @@ function parseHtmlSummary(html, collectionName) {
   // Primary: KPI cards
   $(".card-body").each((i, el) => {
     const label = $(el).find("h6.text-uppercase").text().trim();
-    const value = $(el).find("h1.display-1").text().trim();
+    // Try both display-1 and display-4 classes (different Newman versions)
+    let value = $(el).find("h1.display-1").text().trim();
+    if (!value) {
+      value = $(el).find("h1.display-4").text().trim();
+    }
     if (label && value) {
       const key = cleanKey(label);
       summary[key] = value;

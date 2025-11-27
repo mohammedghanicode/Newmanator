@@ -66,7 +66,7 @@ ipcMain.handle("process-files", async (event, filePaths) => {
       "@(" + filePaths.map((p) => `"${p}"`).join(", ") + ")";
 
     // Build the full command as a single string
-    const psCommand = `& "${path.join(__dirname, "run-reporter.ps1")}" -InputPaths ${psArrayString}`;
+    const psCommand = `& "${path.join(__dirname, "..", "run-reporter.ps1")}" -InputPaths ${psArrayString}`;
 
     console.log("Executing PowerShell command:", psCommand);
 
@@ -103,7 +103,11 @@ ipcMain.handle("process-files", async (event, filePaths) => {
     ps.on("close", (code) => {
       if (code === 0) {
         // Check if summary.html exists
-        const summaryPath = path.join(__dirname, "summary.html");
+        const rootDir =
+          __dirname.includes("electron") ?
+            path.join(__dirname, "..")
+          : __dirname;
+        const summaryPath = path.join(rootDir, "summary.html");
         if (fs.existsSync(summaryPath)) {
           resolve({
             success: true,
@@ -139,7 +143,7 @@ ipcMain.handle("process-files", async (event, filePaths) => {
 
 // Handle opening summary
 ipcMain.handle("open-summary", async () => {
-  const summaryPath = path.join(__dirname, "summary.html");
+  const summaryPath = path.join(rootDir, "summary.html");
   if (fs.existsSync(summaryPath)) {
     require("electron").shell.openPath(summaryPath);
     return true;

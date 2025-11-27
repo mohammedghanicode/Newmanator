@@ -159,6 +159,7 @@ portal*
 gateway*
 postman-tests*
 public/indexworking.oldUI
+*.html
 
 # OS
 .DS_Store
