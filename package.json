@@ -4,6 +4,8 @@
   "main": "electron/electron-main.js",
   "description": "Newmanator - Newman report collation tool with Desktop and Web UI",
   "scripts": {
+    "start:web": "node --max-old-space-size=4096 server.js",
+    "dev": "nodemon --max-old-space-size=4096 server.js",
     "test": "vitest",
     "start": "electron .",
     "start:web": "node server.js",
