@@ -143,6 +143,10 @@ ipcMain.handle("process-files", async (event, filePaths) => {
 
 // Handle opening summary
 ipcMain.handle("open-summary", async () => {
+  // Use same rootDir logic as process-files
+  const rootDir =
+    __dirname.includes("electron") ? path.join(__dirname, "..") : __dirname;
+
   const summaryPath = path.join(rootDir, "summary.html");
   if (fs.existsSync(summaryPath)) {
     require("electron").shell.openPath(summaryPath);
