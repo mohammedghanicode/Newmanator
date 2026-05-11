@@ -2,7 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { exec } = require("child_process");
+const { spawn } = require("child_process");
+const rateLimit = require("express-rate-limit");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
@@ -35,15 +36,15 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [".zip", ".html"];
+    const allowedTypes = [".zip", ".html", ".htm"];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedTypes.includes(ext)) {
       cb(null, true);
     } else {
       cb(
         new Error(
-          `Unsupported file type: ${ext}. Only .zip and .html files are allowed.`
-        )
+          `Unsupported file type: ${ext}. Only .zip and .html files are allowed.`,
+        ),
       );
     }
   },
@@ -55,6 +56,20 @@ const upload = multer({
 // Processing status tracking
 const processingStatus = new Map();
 
+// Active processing sessions (concurrency control)
+const activeSessions = new Set();
+const MAX_CONCURRENT_SESSIONS =
+  Number(process.env.MAX_CONCURRENT_SESSIONS) || 3;
+
+// Upload rate limiter
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: Number(process.env.UPLOADS_PER_MINUTE) || 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many uploads, try again later" },
+});
+
 // Middleware
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
@@ -65,43 +80,104 @@ app.get("/", (req, res) => {
 });
 
 // File upload endpoint
-app.post("/api/upload", upload.array("files", 20), (req, res) => {
-  try {
-    const sessionId = req.sessionId || uuidv4();
-    const files = req.files;
+app.post(
+  "/api/upload",
+  uploadLimiter,
+  upload.array("files", 20),
+  (req, res) => {
+    try {
+      const sessionId = req.sessionId || uuidv4();
+      const files = req.files;
 
-    console.log(`🚀 DIAGNOSTIC: Starting processing for session ${sessionId}`);
-    console.log(
-      `Files uploaded: ${files.map((f) => f.originalname).join(", ")}`
-    );
+      console.log(
+        `🚀 DIAGNOSTIC: Starting processing for session ${sessionId}`,
+      );
+      console.log(
+        `Files uploaded: ${files.map((f) => f.originalname).join(", ")}`,
+      );
 
-    if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No files uploaded" });
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files uploaded" });
+      }
+
+      // Initialize processing status
+      processingStatus.set(sessionId, {
+        status: "uploaded",
+        stage: "upload",
+        message: `Uploaded ${files.length} file(s)`,
+        files: files.map((f) => ({ name: f.originalname, size: f.size })),
+        progress: 0,
+        startTime: new Date(),
+      });
+
+      // Concurrency guard
+      if (activeSessions.size >= MAX_CONCURRENT_SESSIONS) {
+        // clean up uploaded files immediately
+        setTimeout(() => {
+          if (fs.existsSync(req.sessionDir))
+            fs.rmSync(req.sessionDir, { recursive: true, force: true });
+        }, 1000);
+        return res.status(429).json({
+          error: "Server busy. Too many concurrent processing sessions.",
+        });
+      }
+
+      // Validate file contents (simple magic/header checks)
+      const invalidFiles = [];
+      for (const f of files) {
+        const fp = path.join(req.sessionDir, f.originalname);
+        const ext = path.extname(f.originalname).toLowerCase();
+        try {
+          if (ext === ".zip") {
+            // Only read header for zip files (check magic bytes)
+            const header = readFileHeader(fp, 8192);
+            if (
+              !(header.length >= 2 && header[0] === 0x50 && header[1] === 0x4b)
+            ) {
+              invalidFiles.push(f.originalname);
+            }
+          } else if (ext === ".html" || ext === ".htm") {
+            // Accept HTML by extension; header-sniffing can be unreliable for HTML
+          } else {
+            invalidFiles.push(f.originalname);
+          }
+        } catch (e) {
+          // If header read fails for a zip, mark it invalid. For HTML, ignore read errors.
+          if (ext === ".zip") invalidFiles.push(f.originalname);
+        }
+      }
+
+      if (invalidFiles.length > 0) {
+        processingStatus.set(sessionId, {
+          status: "error",
+          stage: "validation",
+          message: `Invalid uploaded files: ${invalidFiles.join(", ")}`,
+          progress: 0,
+          updatedAt: new Date(),
+        });
+        // remove uploaded files
+        if (fs.existsSync(req.sessionDir))
+          fs.rmSync(req.sessionDir, { recursive: true, force: true });
+        return res.status(400).json({
+          error: `Invalid uploaded files: ${invalidFiles.join(", ")}`,
+        });
+      }
+
+      // Mark session as active and start processing asynchronously
+      activeSessions.add(sessionId);
+      processFiles(sessionId, req.sessionDir, files);
+
+      res.json({
+        sessionId,
+        message: `Successfully uploaded ${files.length} file(s)`,
+        files: files.map((f) => ({ name: f.originalname, size: f.size })),
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Upload failed: " + error.message });
     }
-
-    // Initialize processing status
-    processingStatus.set(sessionId, {
-      status: "uploaded",
-      stage: "upload",
-      message: `Uploaded ${files.length} file(s)`,
-      files: files.map((f) => ({ name: f.originalname, size: f.size })),
-      progress: 0,
-      startTime: new Date(),
-    });
-
-    // Start processing asynchronously
-    processFiles(sessionId, req.sessionDir, files);
-
-    res.json({
-      sessionId,
-      message: `Successfully uploaded ${files.length} file(s)`,
-      files: files.map((f) => ({ name: f.originalname, size: f.size })),
-    });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Upload failed: " + error.message });
-  }
-});
+  },
+);
 
 // Get processing status
 app.get("/api/status/:sessionId", (req, res) => {
@@ -128,7 +204,7 @@ app.get("/api/results/:sessionId", (req, res) => {
 
   const htmlContent = fs.readFileSync(resultsPath, "utf8");
   console.log(
-    `DIAGNOSTIC: Results found, length: ${htmlContent.length} characters`
+    `DIAGNOSTIC: Results found, length: ${htmlContent.length} characters`,
   );
 
   res.json({
@@ -190,7 +266,7 @@ async function processFiles(sessionId, uploadDir, files) {
     console.log(`DIAGNOSTIC: Processing files for session ${sessionId}`);
     console.log(`Upload directory: ${uploadDir}`);
     console.log(
-      `📋 Files to process: ${files.map((f) => f.originalname).join(", ")}`
+      `📋 Files to process: ${files.map((f) => f.originalname).join(", ")}`,
     );
 
     // Update status: validation
@@ -199,7 +275,7 @@ async function processFiles(sessionId, uploadDir, files) {
       "processing",
       "validation",
       "Validating uploaded files...",
-      20
+      20,
     );
 
     // Create results directory for this session
@@ -215,11 +291,19 @@ async function processFiles(sessionId, uploadDir, files) {
       "processing",
       "processing",
       "Processing report files...",
-      40
+      40,
     );
 
     // Build file arguments for process-files.js
     const fileArgs = files.map((f) => path.join(uploadDir, f.originalname));
+    // Diagnostic: list files actually present on disk in the uploadDir
+    try {
+      const onDisk =
+        fs.existsSync(req.sessionDir) ? fs.readdirSync(req.sessionDir) : [];
+      console.log(`📋 Files on disk in upload dir: ${onDisk.join(", ")}`);
+    } catch (e) {
+      console.warn("Could not list upload dir contents", e.message);
+    }
     console.log(`📋 File arguments: ${fileArgs}`);
 
     // Check if process-files.js exists
@@ -230,8 +314,24 @@ async function processFiles(sessionId, uploadDir, files) {
 
     // Call process-files.js
     console.log(`DIAGNOSTIC: Calling process-files.js...`);
-    const processCmd = `node --max-old-space-size=4096 process-files.js ${fileArgs.map((f) => `"${f}"`).join(" ")}`;
-    await executeCommand(processCmd);
+    // Use a per-session working directory to avoid races between sessions
+    const sessionUnzippedDir = path.join(__dirname, "unzipped", sessionId);
+    if (!fs.existsSync(sessionUnzippedDir))
+      fs.mkdirSync(sessionUnzippedDir, { recursive: true });
+
+    // Run process-files.js without a shell to avoid command injection
+    await executeCommand(
+      "node",
+      [
+        "--max-old-space-size=4096",
+        "process-files.js",
+        "--outdir",
+        sessionUnzippedDir,
+        ...fileArgs,
+      ],
+      __dirname,
+      sessionId,
+    );
 
     // Update status: collation
     updateStatus(
@@ -239,7 +339,7 @@ async function processFiles(sessionId, uploadDir, files) {
       "processing",
       "collation",
       "Collating reports into summary...",
-      70
+      70,
     );
 
     // Check if summarise.js exists
@@ -250,31 +350,30 @@ async function processFiles(sessionId, uploadDir, files) {
 
     // Call summarise.js
     console.log(`DIAGNOSTIC: Calling summarise.js...`);
-    await executeCommand("node --max-old-space-size=4096 summarise.js");
-
-    // Check if summary.html was generated
-    const sourceSummary = path.join(__dirname, "summary.html");
+    // Summarise should read from the session unzipped dir and write directly to the session results
     const targetSummary = path.join(sessionResultsDir, "summary.html");
-
-    console.log(
-      `🔍 DIAGNOSTIC: Looking for generated summary.html at: ${sourceSummary}`
+    await executeCommand(
+      "node",
+      [
+        "--max-old-space-size=4096",
+        "summarise.js",
+        "--input-dir",
+        sessionUnzippedDir,
+        "--output",
+        targetSummary,
+      ],
+      __dirname,
+      sessionId,
     );
-    if (fs.existsSync(sourceSummary)) {
-      const sourceContent = fs.readFileSync(sourceSummary, "utf8");
-      console.log(
-        `✅ DIAGNOSTIC: Found summary.html, length: ${sourceContent.length} characters`
-      );
-      console.log(
-        `🔄 DIAGNOSTIC: First 200 chars: ${sourceContent.substring(0, 200)}`
-      );
 
-      fs.copyFileSync(sourceSummary, targetSummary);
-      console.log(`✅ DIAGNOSTIC: Copied to results directory`);
-    } else {
-      throw new Error(
-        "summary.html was not generated by your existing pipeline"
-      );
+    // At this point summarise.js wrote directly to targetSummary (above). Confirm it exists.
+    if (!fs.existsSync(targetSummary)) {
+      throw new Error("summary.html was not generated by summarise.js");
     }
+    const sourceContent = fs.readFileSync(targetSummary, "utf8");
+    console.log(
+      `✅ DIAGNOSTIC: Found summary.html, length: ${sourceContent.length} characters`,
+    );
 
     // Update status: complete
     updateStatus(
@@ -286,11 +385,11 @@ async function processFiles(sessionId, uploadDir, files) {
       {
         summaryPath: targetSummary,
         downloadUrl: `/api/download/${sessionId}`,
-      }
+      },
     );
 
     console.log(
-      `✅ DIAGNOSTIC: Processing completed successfully for session ${sessionId}`
+      `✅ DIAGNOSTIC: Processing completed successfully for session ${sessionId}`,
     );
 
     // Clean up upload files after successful processing
@@ -307,27 +406,82 @@ async function processFiles(sessionId, uploadDir, files) {
       "error",
       `Processing failed: ${error.message}`,
       0,
-      { error: error.message }
+      { error: error.message },
     );
+    // ensure we free up concurrency slot
+    if (activeSessions.has(sessionId)) activeSessions.delete(sessionId);
   }
 }
 
-// Helper function to execute shell commands with detailed logging
-function executeCommand(command, cwd = __dirname) {
+// Helper function to execute commands safely (no shell) and capture logs
+function executeCommand(command, args = [], cwd = __dirname, sessionId = null) {
   return new Promise((resolve, reject) => {
-    console.log(`DIAGNOSTIC: Executing: ${command} in ${cwd}`);
-    exec(command, { cwd }, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`❌ DIAGNOSTIC: Command failed: ${command}`, error);
-        reject(error);
-        return;
+    console.log(`DIAGNOSTIC: Spawning: ${command} ${args.join(" ")} in ${cwd}`);
+    const proc = spawn(command, args, { cwd });
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (d) => {
+      const s = d.toString();
+      stdout += s;
+      console.log(`📋 DIAGNOSTIC: stdout: ${s}`);
+      if (sessionId) appendSessionLog(sessionId, "stdout", s);
+    });
+    proc.stderr.on("data", (d) => {
+      const s = d.toString();
+      stderr += s;
+      console.log(`⚠️  DIAGNOSTIC: stderr: ${s}`);
+      if (sessionId) appendSessionLog(sessionId, "stderr", s);
+    });
+    proc.on("error", (err) => {
+      console.error(`❌ DIAGNOSTIC: Spawn error: ${err.message}`);
+      if (sessionId) appendSessionLog(sessionId, "error", err.message);
+      reject(err);
+    });
+    proc.on("close", (code) => {
+      if (code === 0) {
+        console.log(`✅ DIAGNOSTIC: Process exited 0: ${command}`);
+        if (sessionId) appendSessionLog(sessionId, "exit", `exit code 0`);
+        resolve({ stdout, stderr });
+      } else {
+        const err = new Error(`Process exited with code ${code}`);
+        console.error(`❌ DIAGNOSTIC: ${err.message}`);
+        if (sessionId) appendSessionLog(sessionId, "exit", `exit code ${code}`);
+        reject({ error: err, stdout, stderr });
       }
-      console.log(`✅ DIAGNOSTIC: Command succeeded: ${command}`);
-      if (stdout) console.log(`📋 DIAGNOSTIC: stdout: ${stdout}`);
-      if (stderr) console.log(`⚠️  DIAGNOSTIC: stderr: ${stderr}`);
-      resolve({ stdout, stderr });
     });
   });
+}
+
+// Append log lines into processingStatus for a session (bounded buffer)
+function appendSessionLog(sessionId, stream, text) {
+  try {
+    const current = processingStatus.get(sessionId) || {};
+    const logs = Array.isArray(current.logs) ? current.logs : [];
+    const lines = String(text || "")
+      .split(/\r?\n/)
+      .filter(Boolean);
+    for (const line of lines) {
+      logs.push({ t: new Date().toISOString(), s: stream, m: line });
+    }
+    // keep last 1000 entries
+    if (logs.length > 1000) logs.splice(0, logs.length - 1000);
+    processingStatus.set(sessionId, { ...current, logs });
+  } catch (e) {
+    console.error("Failed to append session log", e);
+  }
+}
+
+// Read the first N bytes of a file safely
+function readFileHeader(filePath, length) {
+  const fd = fs.openSync(filePath, "r");
+  try {
+    const buf = Buffer.alloc(length);
+    const bytes = fs.readSync(fd, buf, 0, length, 0);
+    return buf.slice(0, bytes);
+  } finally {
+    fs.closeSync(fd);
+  }
 }
 
 // Helper function to update processing status
@@ -343,7 +497,7 @@ function updateStatus(sessionId, status, stage, message, progress, extra = {}) {
     ...extra,
   });
   console.log(
-    `🔄 DIAGNOSTIC: Status update for ${sessionId}: ${status} - ${message}`
+    `🔄 DIAGNOSTIC: Status update for ${sessionId}: ${status} - ${message}`,
   );
 }
 
@@ -356,17 +510,29 @@ app.use((error, req, res, next) => {
         .json({ error: "File too large. Maximum size is 500MB." });
     }
   }
+  // Return clearer 400 for fileFilter rejections
+  if (
+    error &&
+    error.message &&
+    error.message.indexOf("Unsupported file type") === 0
+  ) {
+    return res.status(400).json({ error: error.message });
+  }
   console.error("🚨 Server error:", error);
   res.status(500).json({ error: "Internal server error" });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Newmanator server running at http://localhost:${PORT}`);
-  console.log(`Upload directory: ${UPLOAD_DIR}`);
-  console.log(`Results directory: ${RESULTS_DIR}`);
-  console.log(`Maximum file size: 500MB`);
-  console.log(`Uses your existing process-files.js and summarise.js pipeline`);
-});
+// Start server when run directly (allow tests to require the app without listening)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Newmanator server running at http://localhost:${PORT}`);
+    console.log(`Upload directory: ${UPLOAD_DIR}`);
+    console.log(`Results directory: ${RESULTS_DIR}`);
+    console.log(`Maximum file size: 500MB`);
+    console.log(
+      `Uses your existing process-files.js and summarise.js pipeline`,
+    );
+  });
+}
 
 module.exports = app;

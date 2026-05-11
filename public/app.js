@@ -1,273 +1,274 @@
-// app.js - Frontend JavaScript for Newmanator Web UI
-
-let selectedFiles = [];
-let currentSessionId = null;
-
-const elements = {
-  dropZone: document.getElementById("dropZone"),
-  fileInput: document.getElementById("fileInput"),
-  fileList: document.getElementById("fileList"),
-  clearBtn: document.getElementById("clearBtn"),
-  uploadBtn: document.getElementById("uploadBtn"),
-  progressSection: document.getElementById("progressSection"),
-  statusMessage: document.getElementById("statusMessage"),
-  progressBar: document.getElementById("progressBar"),
-  resultPreview: document.getElementById("resultPreview"),
-  resultFrame: document.getElementById("resultFrame"),
-  downloadSection: document.getElementById("downloadSection"),
-  downloadBtn: document.getElementById("downloadBtn"),
-};
-
-// Drop zone click handler
-elements.dropZone.addEventListener("click", () => {
-  elements.fileInput.click();
-});
-
-// File input change handler
-elements.fileInput.addEventListener("change", (e) => {
-  handleFiles(Array.from(e.target.files));
-});
-
-// Drag and drop handlers
-elements.dropZone.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  elements.dropZone.classList.add("dragover");
-});
-
-elements.dropZone.addEventListener("dragleave", () => {
-  elements.dropZone.classList.remove("dragover");
-});
-
-elements.dropZone.addEventListener("drop", (e) => {
-  e.preventDefault();
-  elements.dropZone.classList.remove("dragover");
-  handleFiles(Array.from(e.dataTransfer.files));
-});
-
-// Clear files handler
-elements.clearBtn.addEventListener("click", () => {
-  selectedFiles = [];
-  renderFileList();
-  updateButtons();
-});
-
-// Upload handler
-elements.uploadBtn.addEventListener("click", async () => {
-  if (selectedFiles.length === 0) return;
-  await uploadAndProcess();
-});
-
-// Download handler
-elements.downloadBtn.addEventListener("click", () => {
-  if (currentSessionId) {
-    window.open(`/api/download/${currentSessionId}`, "_blank");
-  }
-});
-
-// Handle file selection
-function handleFiles(files) {
-  const validFiles = files.filter((file) => {
-    const ext = file.name.toLowerCase();
-    return ext.endsWith(".zip") || ext.endsWith(".html");
-  });
-
-  if (validFiles.length === 0) {
-    alert("Please select .zip or .html files only");
-    return;
-  }
-
-  selectedFiles = [...selectedFiles, ...validFiles];
-  renderFileList();
-  updateButtons();
-}
-
-// Render file list
-function renderFileList() {
-  if (selectedFiles.length === 0) {
-    elements.fileList.innerHTML = "";
-    elements.dropZone.classList.remove("has-files");
-    return;
-  }
-
-  elements.dropZone.classList.add("has-files");
-
-  elements.fileList.innerHTML = selectedFiles
-    .map((file, index) => {
-      const icon = file.name.toLowerCase().endsWith(".zip") ? "📦" : "📄";
-      const size = formatFileSize(file.size);
-
-      return `
-      <div class="file-item">
-        <div class="file-info">
-          <span class="file-icon">${icon}</span>
-          <div class="file-details">
-            <div class="file-name">${escapeHtml(file.name)}</div>
-            <div class="file-size">${size}</div>
-          </div>
-        </div>
-        <button class="remove-btn" onclick="removeFile(${index})">Remove</button>
-      </div>
-    `;
-    })
-    .join("");
-}
-
-// Remove file from list
-function removeFile(index) {
-  selectedFiles.splice(index, 1);
-  renderFileList();
-  updateButtons();
-}
-
-// Update button states
-function updateButtons() {
-  const hasFiles = selectedFiles.length > 0;
-  elements.clearBtn.disabled = !hasFiles;
-  elements.uploadBtn.disabled = !hasFiles;
-}
-
-// Upload and process files
-async function uploadAndProcess() {
-  try {
-    // Disable buttons
-    elements.uploadBtn.disabled = true;
-    elements.clearBtn.disabled = true;
-
-    // Show progress section
-    elements.progressSection.classList.add("visible");
-    elements.resultPreview.classList.remove("visible");
-    elements.downloadSection.style.display = "none";
-
-    updateStatus("processing", "Uploading files...", 10);
-
-    // Create FormData
-    const formData = new FormData();
-    selectedFiles.forEach((file) => {
-      formData.append("files", file);
-    });
-
-    // Upload files
-    const uploadResponse = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!uploadResponse.ok) {
-      throw new Error("Upload failed");
-    }
-
-    const uploadData = await uploadResponse.json();
-    currentSessionId = uploadData.sessionId;
-
-    updateStatus("processing", "Processing reports...", 30);
-
-    // Poll for status updates
-    await pollStatus(currentSessionId);
-  } catch (error) {
-    console.error("Error:", error);
-    updateStatus("error", `Error: ${error.message}`, 0);
-    elements.uploadBtn.disabled = false;
-    elements.clearBtn.disabled = false;
-  }
-}
-
-// Poll processing status
-async function pollStatus(sessionId) {
-  const maxAttempts = 60; // 2 minutes max
-  let attempts = 0;
-
-  const poll = async () => {
-    try {
-      const response = await fetch(`/api/status/${sessionId}`);
-      if (!response.ok) throw new Error("Status check failed");
-
-      const status = await response.json();
-
-      updateStatus(status.status, status.message, status.progress);
-
-      if (status.status === "complete") {
-        // Load results
-        await loadResults(sessionId);
-        elements.uploadBtn.disabled = false;
-        elements.clearBtn.disabled = false;
-        return;
-      }
-
-      if (status.status === "error") {
-        elements.uploadBtn.disabled = false;
-        elements.clearBtn.disabled = false;
-        return;
-      }
-
-      // Continue polling
-      attempts++;
-      if (attempts < maxAttempts) {
-        setTimeout(poll, 2000);
-      } else {
-        throw new Error("Processing timeout");
-      }
-    } catch (error) {
-      updateStatus("error", `Error: ${error.message}`, 0);
-      elements.uploadBtn.disabled = false;
-      elements.clearBtn.disabled = false;
-    }
+// Consolidated frontend script for Newmanator
+(function () {
+  const els = {
+    dropZone: document.getElementById("dropZone"),
+    fileInput: document.getElementById("fileInput"),
+    fileList: document.getElementById("fileList"),
+    clearBtn: document.getElementById("clearBtn"),
+    uploadBtn: document.getElementById("uploadBtn"),
+    progressSection: document.getElementById("progressSection"),
+    statusMessage: document.getElementById("statusMessage"),
+    progressBar: document.getElementById("progressBar"),
+    resultPreview: document.getElementById("resultPreview"),
+    resultFrame: document.getElementById("resultFrame"),
+    downloadSection: document.getElementById("downloadSection"),
+    downloadBtn: document.getElementById("downloadBtn"),
+    sessionIdDisplay: document.getElementById("sessionIdDisplay"),
+    logsCard: document.getElementById("logsCard"),
+    logsPanel: document.getElementById("logsPanel"),
   };
 
-  poll();
-}
+  let files = [];
+  let currentSession = null;
+  let sse = null;
 
-// Load and display results
-async function loadResults(sessionId) {
-  try {
-    const response = await fetch(`/api/results/${sessionId}`);
-    if (!response.ok) throw new Error("Failed to load results");
-
-    const data = await response.json();
-
-    // Create a blob URL for the iframe
-    const blob = new Blob([data.html], { type: "text/html" });
-    const url = URL.createObjectURL(blob);
-
-    elements.resultFrame.src = url;
-    elements.resultPreview.classList.add("visible");
-    elements.downloadSection.style.display = "block";
-
-    updateStatus(
-      "success",
-      "✅ Processing completed! View results below.",
-      100
+  function escapeHtml(s) {
+    return String(s).replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
     );
-  } catch (error) {
-    console.error("Error loading results:", error);
-    updateStatus("error", `Failed to load results: ${error.message}`, 0);
   }
-}
 
-// Update status display
-function updateStatus(status, message, progress) {
-  elements.statusMessage.textContent = message;
-  elements.statusMessage.className = `status-message status-${status}`;
-  elements.progressBar.style.width = `${progress}%`;
-  elements.progressBar.textContent = `${progress}%`;
-}
+  function formatBytes(bytes) {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  }
 
-// Helper functions
-function formatFileSize(bytes) {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-}
+  function renderFileList() {
+    els.fileList.innerHTML = "";
+    if (files.length === 0) {
+      els.clearBtn.disabled = true;
+      els.uploadBtn.disabled = true;
+      els.dropZone.classList.remove("has-files");
+      return;
+    }
+    els.clearBtn.disabled = false;
+    els.uploadBtn.disabled = false;
+    els.dropZone.classList.add("has-files");
 
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
+    files.forEach((f, idx) => {
+      const node = document.createElement("div");
+      node.className = "file-item";
+      node.innerHTML = `
+        <div class="file-info">
+          <div class="file-icon">${f.name.toLowerCase().endsWith(".zip") ? "📦" : "📄"}</div>
+          <div class="file-details">
+            <div class="file-name">${escapeHtml(f.name)}</div>
+            <div class="file-size">${formatBytes(f.size)}</div>
+          </div>
+        </div>
+      `;
+      const btn = document.createElement("button");
+      btn.className = "remove-btn";
+      btn.innerText = "Remove";
+      btn.onclick = () => {
+        files.splice(idx, 1);
+        renderFileList();
+      };
+      node.appendChild(btn);
+      els.fileList.appendChild(node);
+    });
+  }
 
-// Make removeFile global
-window.removeFile = removeFile;
+  function pushFiles(list) {
+    for (const f of Array.from(list)) {
+      const ext = f.name.split(".").pop().toLowerCase();
+      if (["zip", "html", "htm"].includes(ext)) files.push(f);
+    }
+    renderFileList();
+  }
 
-// Initialize
-updateButtons();
+  // Handlers
+  els.dropZone.addEventListener("click", () => els.fileInput.click());
+  els.fileInput.addEventListener("change", (e) => {
+    pushFiles(e.target.files);
+    els.fileInput.value = "";
+  });
+  els.dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    els.dropZone.classList.add("dragover");
+  });
+  els.dropZone.addEventListener("dragleave", () =>
+    els.dropZone.classList.remove("dragover"),
+  );
+  els.dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    els.dropZone.classList.remove("dragover");
+    pushFiles(e.dataTransfer.files);
+  });
+  els.clearBtn.addEventListener("click", () => {
+    files = [];
+    renderFileList();
+  });
+
+  els.uploadBtn.addEventListener("click", () => {
+    if (files.length === 0) return;
+    uploadFiles();
+  });
+
+  async function uploadFiles() {
+    els.uploadBtn.disabled = true;
+    els.clearBtn.disabled = true;
+    els.progressSection.classList.add("visible");
+    updateStatus("processing", "Uploading files...", 5);
+
+    const fd = new FormData();
+    for (const f of files) fd.append("files", f, f.name);
+
+    // XHR for upload progress
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "/api/upload");
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          const pct = 5 + (e.loaded / e.total) * 45; // map to 5-50
+          updateStatus(
+            "processing",
+            `Uploading: ${Math.round((e.loaded / e.total) * 100)}%`,
+            pct,
+          );
+        }
+      };
+      xhr.onerror = () => {
+        updateStatus("error", "Upload failed (network)", 0);
+        els.uploadBtn.disabled = false;
+        els.clearBtn.disabled = false;
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const data = JSON.parse(xhr.responseText || "{}");
+          currentSession = data.sessionId;
+          if (els.sessionIdDisplay)
+            els.sessionIdDisplay.innerText = currentSession || "-";
+          updateStatus("processing", "Waiting for processing...", 50);
+          connectSSE(currentSession);
+        } else {
+          console.error("Upload failed", xhr.status, xhr.responseText);
+          let message = "Upload failed";
+          try {
+            const parsed = JSON.parse(xhr.responseText || "{}");
+            message = parsed.error || parsed.message || message;
+          } catch (e) {
+            message = xhr.responseText || message;
+          }
+          updateStatus("error", message, 0);
+          els.uploadBtn.disabled = false;
+          els.clearBtn.disabled = false;
+        }
+      };
+      xhr.send(fd);
+    } catch (e) {
+      updateStatus("error", e.message, 0);
+      els.uploadBtn.disabled = false;
+      els.clearBtn.disabled = false;
+    }
+  }
+
+  function connectSSE(sessionId) {
+    try {
+      if (sse)
+        try {
+          sse.close();
+        } catch (e) {}
+      sse = new EventSource(`/api/events/${sessionId}`);
+      sse.onmessage = (ev) => {
+        try {
+          const status = JSON.parse(ev.data);
+          if (status.message)
+            updateStatus(
+              status.status === "error" ? "error"
+              : status.status === "complete" ? "success"
+              : "processing",
+              status.message,
+              status.progress || 0,
+            );
+          if (status.logs && Array.isArray(status.logs))
+            renderLogs(status.logs);
+          if (status.status === "complete") {
+            loadResults(sessionId);
+            try {
+              sse.close();
+            } catch (e) {}
+          }
+        } catch (e) {
+          console.error("SSE parse", e);
+        }
+      };
+      sse.onerror = (e) => {
+        console.warn("SSE error", e);
+      };
+    } catch (e) {
+      console.error("SSE open failed", e);
+    }
+  }
+
+  function renderLogs(logs) {
+    if (!els.logsPanel) return;
+    els.logsCard.style.display = "block";
+    const tail = logs.slice(-500);
+    els.logsPanel.innerHTML = tail
+      .map((l) => {
+        const time = new Date(l.t).toLocaleTimeString();
+        const color =
+          l.s === "stderr" ? "#ffb4b4"
+          : l.s === "error" ? "#ff9b9b"
+          : l.s === "exit" ? "#a3e635"
+          : "#cfe8ff";
+        return `<div style="margin-bottom:4px;color:${color}"><span style="color:#8892a6;">[${time}]</span> ${escapeHtml(l.m)}</div>`;
+      })
+      .join("");
+    els.logsPanel.scrollTop = els.logsPanel.scrollHeight;
+  }
+
+  async function loadResults(sessionId) {
+    try {
+      updateStatus("processing", "Fetching results...", 90);
+      const r = await fetch(`/api/results/${sessionId}`);
+      if (!r.ok) {
+        updateStatus("error", "Failed to fetch results", 0);
+        return;
+      }
+      const j = await r.json();
+      if (j && j.html) {
+        els.resultFrame.srcdoc = j.html;
+        els.resultPreview.classList.add("visible");
+        els.downloadSection.style.display = "block";
+        els.downloadBtn.onclick = () => {
+          window.location = `/api/download/${sessionId}`;
+        };
+        updateStatus("success", "Complete — summary available", 100);
+      }
+    } catch (e) {
+      updateStatus("error", "Failed to load results: " + e.message, 0);
+    } finally {
+      els.uploadBtn.disabled = false;
+      els.clearBtn.disabled = false;
+    }
+  }
+
+  function updateStatus(state, message, progress) {
+    els.statusMessage.innerText = message || "";
+    els.statusMessage.className =
+      "status-message " +
+      (state === "error" ? "status-error"
+      : state === "success" ? "status-success"
+      : "status-processing");
+    els.progressBar.style.width =
+      Math.max(0, Math.min(100, progress || 0)) + "%";
+    els.progressBar.innerText = Math.round(progress || 0) + "%";
+  }
+
+  // init
+  renderFileList();
+  updateStatus("processing", "Ready", 0);
+})();

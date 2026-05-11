@@ -3,6 +3,19 @@ const fs = require("fs");
 const path = require("path");
 const cheerio = require("cheerio");
 
+// CLI args: optional --input-dir <dir> and --output <file>
+let INPUT_DIR = null;
+let OUTPUT_FILE = null;
+for (let i = 2; i < process.argv.length; i++) {
+  if (process.argv[i] === "--input-dir" && process.argv[i + 1]) {
+    INPUT_DIR = process.argv[i + 1];
+    i++;
+  } else if (process.argv[i] === "--output" && process.argv[i + 1]) {
+    OUTPUT_FILE = process.argv[i + 1];
+    i++;
+  }
+}
+
 // Turn this on when JSON isn't available and you want HTML-parsed details.
 const ENABLE_HTML_DETAILS_FALLBACK = true;
 const HTML_DETAILS_MAX_ROWS = 5000; // cap HTML-parsed rows to keep memory stable
@@ -49,11 +62,11 @@ function redactSensitive(s) {
   // Bearer tokens / JWTs
   out = out.replace(
     /\bBearer\s+[A-Za-z0-9\-\._]+\b/gi,
-    "Bearer ***redacted***"
+    "Bearer ***redacted***",
   );
   out = out.replace(
     /\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b/g,
-    "***redacted.jwt***"
+    "***redacted.jwt***",
   );
 
   // Generic long base64ish tokens (avoid eating normal words)
@@ -166,7 +179,7 @@ function parseHtmlSummary(html, collectionName) {
     const failedKpiNum = getFirstMetricNumber(
       summary,
       ["total_failed_tests", "failed_tests", "failed"],
-      null
+      null,
     );
     if (failedKpiNum === null || failedKpiNum === 0) {
       summary.total_failed_tests = String(failedFromTable);
@@ -222,6 +235,18 @@ function parseFailedTests(reportJson) {
     const requestName = exec.item?.name || "Unknown request";
     for (const assertion of exec.assertions || []) {
       if (assertion && assertion.error) {
+        // Exclude known noise (e.g. Response time threshold messages)
+        const testText = String(assertion.assertion || "");
+        const msgText = String(assertion.error.message || "");
+        let skip = false;
+        for (const rx of EXCLUDE_PATTERNS) {
+          if (rx.test(testText) || rx.test(msgText)) {
+            skip = true;
+            break;
+          }
+        }
+        if (skip) continue;
+
         failedTests.push({
           request: requestName,
           test: assertion.assertion,
@@ -446,10 +471,10 @@ function parseFailureDetailsFromHtml(html) {
     // If we don’t have both test & message, infer 2-col [Assertion | Message] only if headers look like failures
     if (idx.test === -1 || idx.message === -1) {
       const hasAssertLike = headers.some((h) =>
-        /assertion|test|check|rule/i.test(h)
+        /assertion|test|check|rule/i.test(h),
       );
       const hasMsgLike = headers.some((h) =>
-        /error|message|detail|details|reason|failure/i.test(h)
+        /error|message|detail|details|reason|failure/i.test(h),
       );
       if (headers.length === 2 && (hasAssertLike || hasMsgLike)) {
         idx.test = 0;
@@ -526,10 +551,10 @@ function createSummaryHtml(collections) {
         getFirstMetric(
           c,
           ["total_skipped_tests", "skipped_tests", "skipped"],
-          "0"
+          "0",
         ),
-        0
-      ) > 0
+        0,
+      ) > 0,
   );
   const rowsHtml = collections
     .map((col) => {
@@ -538,16 +563,37 @@ function createSummaryHtml(collections) {
       const failedStr = getFirstMetric(
         col,
         ["total_failed_tests", "failed_tests", "failed"],
-        null
+        null,
       );
-      const failed =
-        failedStr != null ? toNumber(failedStr, 0)
-        : Array.isArray(col.failures) ? col.failures.length
-        : 0;
+      let failed = failedStr != null ? toNumber(failedStr, 0) : 0;
+
+      // If JSON failures are present, prefer their filtered count
+      if (Array.isArray(col.failures) && col.failures.length > 0) {
+        failed = col.failures.length;
+      }
+
+      // If no JSON but we have an HTML path and HTML fallback is enabled,
+      // parse the HTML failures (they will be filtered by EXCLUDE_PATTERNS)
+      if (
+        (!Array.isArray(col.failures) || col.failures.length === 0) &&
+        col.__htmlPath &&
+        ENABLE_HTML_DETAILS_FALLBACK
+      ) {
+        try {
+          const _html = fs.readFileSync(col.__htmlPath, "utf-8");
+          const htmlList = parseFailureDetailsFromHtml(_html);
+          // prefer the HTML-parsed count (already filtered)
+          failed = htmlList.length;
+          // cache the parsed list so we don't re-parse later
+          col.__parsedHtmlFailures = htmlList;
+        } catch (e) {
+          /* ignore parse errors */
+        }
+      }
       const skipped = getFirstMetric(
         col,
         ["total_skipped_tests", "skipped_tests", "skipped"],
-        "0"
+        "0",
       );
 
       col.__failed_normalized = failed;
@@ -615,7 +661,7 @@ function createSummaryHtml(collections) {
           <div class="assert">${escapeHtml(r.test)} <span class="count">×${r.count}</span></div>
           <pre class="msg">${escapeHtml(r.message)}</pre>
         </li>
-      `
+      `,
         )
         .join("");
 
@@ -656,6 +702,11 @@ function createSummaryHtml(collections) {
           test: redactSensitive(f.test || "Unknown assertion"),
           message: redactSensitive(f.message || "Error"),
         }));
+      } else if (
+        Array.isArray(col.__parsedHtmlFailures) &&
+        col.__parsedHtmlFailures.length > 0
+      ) {
+        list = col.__parsedHtmlFailures.slice(0, HTML_DETAILS_MAX_ROWS);
       } else if (col.__htmlPath && ENABLE_HTML_DETAILS_FALLBACK) {
         try {
           const html = fs.readFileSync(col.__htmlPath, "utf-8");
@@ -686,7 +737,7 @@ function createSummaryHtml(collections) {
 
   const totalFailed = collections.reduce(
     (sum, col) => sum + (col.__failed_normalized || 0),
-    0
+    0,
   );
   const footerHtml =
     totalFailed === 0 ? "<p><strong>No failed tests 🎉</strong></p>" : "";
@@ -740,7 +791,7 @@ function createSummaryHtml(collections) {
 
 /* ================================ 5) Main ================================ */
 function run() {
-  const unzippedPath = path.join(__dirname, "unzipped");
+  const unzippedPath = INPUT_DIR || path.join(__dirname, "unzipped");
   const reportPaths = findAllReports(unzippedPath);
   const summaries = [];
 
@@ -773,8 +824,9 @@ function run() {
   }
 
   const finalHtml = createSummaryHtml(summaries);
-  fs.writeFileSync("summary.html", finalHtml, "utf-8");
-  console.log("✅ summary.html created successfully!");
+  const outFile = OUTPUT_FILE || path.join(__dirname, "summary.html");
+  fs.writeFileSync(outFile, finalHtml, "utf-8");
+  console.log(`✅ summary written to ${outFile}`);
 }
 
 run();

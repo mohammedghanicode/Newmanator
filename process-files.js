@@ -3,19 +3,31 @@ const path = require("path");
 const AdmZip = require("adm-zip");
 
 if (process.argv.length < 3) {
-  console.log("❌ Usage: node process-files.js <file1> [file2] [file3] ...");
+  console.log(
+    "❌ Usage: node process-files.js [--outdir <dir>] <file1> [file2] [...]",
+  );
   console.log("   Supports both .zip and .html files");
   process.exit(1);
 }
 
-const inputFiles = process.argv.slice(2);
-const workingDir = path.join(__dirname, "unzipped"); // Keep same output dir as process-zip.js
+// Accept optional: --outdir <dir>
+let argvIndex = 2;
+let workingDir = path.join(__dirname, "unzipped"); // default
+if (process.argv[2] === "--outdir") {
+  if (!process.argv[3]) {
+    console.error("❌ Missing value for --outdir");
+    process.exit(1);
+  }
+  workingDir = process.argv[3];
+  argvIndex = 4;
+}
+const inputFiles = process.argv.slice(argvIndex);
 
-// 1. Clear previous contents
+// 1. Clear previous contents for this workingDir
 if (fs.existsSync(workingDir)) {
   fs.rmSync(workingDir, { recursive: true });
 }
-fs.mkdirSync(workingDir);
+fs.mkdirSync(workingDir, { recursive: true });
 
 console.log(`📁 Processing ${inputFiles.length} file(s)...`);
 
@@ -65,14 +77,14 @@ for (const inputFile of inputFiles) {
         fs.copyFileSync(jsonSource, path.join(targetDir, "report.json"));
       } else {
         console.log(
-          `  ℹ️  No companion JSON file found (looked for ${baseName}.json or report.json)`
+          `  ℹ️  No companion JSON file found (looked for ${baseName}.json or report.json)`,
         );
       }
 
       processedCount++;
     } else {
       console.warn(
-        `❓ Unsupported file type: ${inputFile} (only .zip and .html are supported)`
+        `❓ Unsupported file type: ${inputFile} (only .zip and .html are supported)`,
       );
     }
   } catch (err) {
