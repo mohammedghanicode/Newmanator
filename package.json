@@ -14,7 +14,25 @@
     "build": "electron-builder",
     "build:win": "electron-builder --win"
   },
-  "keywords": ["newman", "postman", "testing", "reports", "api", "collation", "electron"],
+  "build": {
+    "files": [
+      "**/*",
+      "!unzipped/**",
+      "!results/**",
+      "!uploads/**",
+      "!test/**",
+      "!*.md"
+    ]
+  },
+  "keywords": [
+    "newman",
+    "postman",
+    "testing",
+    "reports",
+    "api",
+    "collation",
+    "electron"
+  ],
   "author": "Mohammed Ghani",
   "license": "MIT",
   "dependencies": {
