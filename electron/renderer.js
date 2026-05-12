@@ -1,129 +1,183 @@
 // Renderer process script for Newmanator UI
 
-let selectedFiles = [];
+const selectedFiles = [];
 let isProcessing = false;
 
-const elements = {
-  browseBtn: document.getElementById("browseBtn"),
-  processBtn: document.getElementById("processBtn"),
+const els = {
+  dropZone: document.getElementById("dropZone"),
+  fileInput: document.getElementById("fileInput"),
+  uploadBtn: document.getElementById("uploadBtn"),
+  clearBtn: document.getElementById("clearBtn"),
   fileList: document.getElementById("fileList"),
-  outputSection: document.getElementById("outputSection"),
-  outputBox: document.getElementById("outputBox"),
-  openSummaryBtn: document.getElementById("openSummaryBtn"),
-  statusBadge: document.getElementById("statusBadge"),
+  statusMessage: document.getElementById("statusMessage"),
+  progressBar: document.getElementById("progressBar"),
+  progressBarLabel: document.getElementById("progressBarLabel"),
+  resultFrame: document.getElementById("resultFrame"),
+  downloadSection: document.getElementById("downloadSection"),
+  downloadBtn: document.getElementById("downloadBtn"),
+  logsPanel: document.getElementById("logsPanel"),
+  sessionIdDisplay: document.getElementById("sessionIdDisplay"),
 };
 
-// Browse for files
-elements.browseBtn.addEventListener("click", async () => {
-  const files = await window.electronAPI.selectFiles();
+function updateSelectionStatus() {
+  const count = selectedFiles.length;
+  els.sessionIdDisplay.textContent =
+    count === 0 ? "None"
+    : count === 1 ? "1 report queued"
+    : `${count} reports queued`;
+}
 
-  if (files && files.length > 0) {
-    selectedFiles = files;
-    renderFileList();
-    elements.processBtn.disabled = false;
-  }
-});
+function updateControls() {
+  const hasFiles = selectedFiles.length > 0;
+  els.uploadBtn.disabled = !hasFiles || isProcessing;
+  els.clearBtn.disabled = !hasFiles || isProcessing;
+}
 
-// Process files
-elements.processBtn.addEventListener("click", async () => {
-  if (selectedFiles.length === 0 || isProcessing) return;
-
-  isProcessing = true;
-  elements.processBtn.disabled = true;
-  elements.browseBtn.disabled = true;
-  elements.openSummaryBtn.style.display = "none";
-
-  // Show spinner
-  const spinner = elements.processBtn.querySelector(".spinner");
-  spinner.style.display = "inline-block";
-  elements.processBtn.innerHTML = '<span class="spinner"></span> Processing...';
-
-  // Show output section
-  elements.outputSection.classList.add("visible");
-  elements.outputBox.innerHTML = "";
-  updateStatus("processing", "Processing reports...");
-
-  try {
-    const result = await window.electronAPI.processFiles(selectedFiles);
-
-    if (result.success) {
-      // appendOutput('✅ Processing completed successfully!', 'success');
-      appendOutput(`📄 Summary generated at: ${result.summaryPath}`, "info");
-      updateStatus("success", "Processing completed! ✅");
-      elements.openSummaryBtn.style.display = "inline-flex";
-    }
-  } catch (error) {
-    appendOutput(`❌ Error: ${error.error}`, "error");
-    if (error.errorOutput) {
-      appendOutput(error.errorOutput, "error");
-    }
-    updateStatus("error", `Processing failed: ${error.error}`);
-  } finally {
-    isProcessing = false;
-    elements.browseBtn.disabled = false;
-    elements.processBtn.disabled = false;
-    elements.processBtn.innerHTML = "⚡ Process Reports";
-  }
-});
-
-// Open summary
-elements.openSummaryBtn.addEventListener("click", async () => {
-  await window.electronAPI.openSummary();
-});
-
-// Listen for real-time output
-window.electronAPI.onProcessOutput((event, data) => {
-  appendOutput(data, "info");
-});
-
-window.electronAPI.onProcessError((event, data) => {
-  appendOutput(data, "error");
-});
-
-// Render file list
-function renderFileList() {
+function formatFileList() {
   if (selectedFiles.length === 0) {
-    elements.fileList.classList.remove("has-files");
-    elements.fileList.innerHTML = `
-      <div class="empty-state">
-        📁 No files selected<br>
-        <small>Click "Browse Files" to select reports</small>
-      </div>
-    `;
+    els.fileList.classList.remove("has-files");
+    els.fileList.innerHTML = "Awaiting files...";
     return;
   }
 
-  elements.fileList.classList.add("has-files");
-  elements.fileList.innerHTML = selectedFiles
+  els.fileList.classList.add("has-files");
+  els.fileList.innerHTML = selectedFiles
     .map((file) => {
       const fileName = file.split("\\").pop().split("/").pop();
       const ext = fileName.split(".").pop().toLowerCase();
       const icon = ext === "zip" ? "📦" : "📄";
-
       return `
-      <div class="file-item">
-        <span class="file-icon">${icon}</span>
-        <span>${fileName}</span>
-      </div>
-    `;
+        <div class="file-item">
+          <span class="file-name">${icon} ${fileName}</span>
+        </div>
+      `;
     })
     .join("");
 }
 
-// Append output
-function appendOutput(text, type = "info") {
+function setProgress(percent, statusText) {
+  const value = Math.max(0, Math.min(100, Math.round(percent)));
+  els.progressBar.style.width = `${value}%`;
+  els.progressBarLabel.textContent = `${value}%`;
+  els.statusMessage.textContent = statusText;
+}
+
+function appendLog(message, type = "info") {
   const line = document.createElement("div");
-  line.className = `output-line output-${type}`;
-  line.textContent = text;
-  elements.outputBox.appendChild(line);
-  elements.outputBox.scrollTop = elements.outputBox.scrollHeight;
+  line.textContent = message;
+  line.style.whiteSpace = "pre-wrap";
+  line.style.color = type === "error" ? "#f87171" : "#a5f3fc";
+  els.logsPanel.appendChild(line);
+  els.logsPanel.scrollTop = els.logsPanel.scrollHeight;
 }
 
-// Update status badge
-function updateStatus(status, message) {
-  elements.statusBadge.className = `status-badge status-${status}`;
-  elements.statusBadge.textContent = message;
+function resetLogs() {
+  els.logsPanel.innerHTML = "";
 }
 
-// Initial render
-renderFileList();
+function setResultPreview(summaryPath) {
+  const fileUrl =
+    summaryPath.startsWith("file://") ? summaryPath : (
+      `file:///${summaryPath.replace(/\\/g, "/")}`
+    );
+  els.resultFrame.src = fileUrl;
+}
+
+function handleFileSelection(files) {
+  selectedFiles.length = 0;
+  for (const file of files) {
+    const pathValue = file.path ?? file;
+    if (!pathValue) continue;
+    const ext = pathValue.split(".").pop().toLowerCase();
+    if (["zip", "html"].includes(ext)) {
+      selectedFiles.push(pathValue);
+    }
+  }
+  formatFileList();
+  updateSelectionStatus();
+  updateControls();
+}
+
+function clearSelection() {
+  selectedFiles.length = 0;
+  formatFileList();
+  updateSelectionStatus();
+  updateControls();
+  setProgress(0, "SYSTEM_READY");
+  resetLogs();
+  setResultPreview("about:blank");
+  els.downloadSection.style.display = "none";
+}
+
+async function processFiles() {
+  if (selectedFiles.length === 0 || isProcessing) return;
+  isProcessing = true;
+  updateControls();
+  setProgress(5, "PROCESSING_FILES...");
+  resetLogs();
+  els.downloadSection.style.display = "none";
+
+  try {
+    const result = await window.electronAPI.processFiles(selectedFiles);
+    if (result.success) {
+      appendLog(`✅ Summary generated: ${result.summaryPath}`);
+      setResultPreview(result.summaryPath);
+      els.downloadSection.style.display = "block";
+      setProgress(100, "COMPLETE");
+    }
+  } catch (error) {
+    const message =
+      error?.message ||
+      (typeof error === "string" ? error : JSON.stringify(error));
+    appendLog(`❌ ${message}`, "error");
+    setProgress(0, "ERROR");
+  } finally {
+    isProcessing = false;
+    updateControls();
+  }
+}
+
+function addDropListeners() {
+  els.dropZone.addEventListener("click", () => els.fileInput.click());
+
+  els.dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    els.dropZone.classList.add("dragover");
+  });
+
+  els.dropZone.addEventListener("dragleave", () => {
+    els.dropZone.classList.remove("dragover");
+  });
+
+  els.dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    els.dropZone.classList.remove("dragover");
+    handleFileSelection(Array.from(event.dataTransfer.files));
+  });
+}
+
+function init() {
+  addDropListeners();
+  formatFileList();
+  updateSelectionStatus();
+  updateControls();
+
+  els.fileInput.addEventListener("change", (event) => {
+    handleFileSelection(Array.from(event.target.files));
+    event.target.value = null;
+  });
+  els.uploadBtn.addEventListener("click", processFiles);
+  els.clearBtn.addEventListener("click", clearSelection);
+  els.downloadBtn.addEventListener("click", () =>
+    window.electronAPI.openSummary(),
+  );
+
+  window.electronAPI.onProcessOutput((event, data) => {
+    appendLog(data.toString(), "info");
+  });
+  window.electronAPI.onProcessError((event, data) => {
+    appendLog(data.toString(), "error");
+  });
+}
+
+init();

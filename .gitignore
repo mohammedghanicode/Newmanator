@@ -164,3 +164,4 @@ public/indexworking.oldUI
 # OS
 .DS_Store
 Thumbs.db
+electron/index.html.oldui
