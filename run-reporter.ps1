@@ -6,8 +6,17 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Always operate from this script's directory
-Set-Location -Path $PSScriptRoot
+# --- PATH LOGIC START ---
+# BASE_DATA_PATH is provided by Electron in production. 
+# If it doesn't exist (dev mode), we use the script root.
+$BaseDir = if ($env:BASE_DATA_PATH) { $env:BASE_DATA_PATH } else { $PSScriptRoot }
+
+# The .js files are always located in the script's root directory.
+$ScriptDir = $PSScriptRoot 
+
+# Change location to where the JS files are so 'node .\script.js' works
+Set-Location -Path $ScriptDir
+# --- PATH LOGIC END ---
 
 function Show-ReportOpenDialog {
     Add-Type -AssemblyName System.Windows.Forms | Out-Null
@@ -30,14 +39,12 @@ function Show-ReportOpenDialog {
         if ($ZipOnly) {
             return @($dlg.FileName)
         } else {
-            # Convert to array regardless of return type
             $files = $dlg.FileNames
             if ($files -is [string]) {
                 return @($files)
             } elseif ($files -is [array]) {
                 return $files
             } else {
-                # Handle edge case where FileNames might be null or other type
                 return @($dlg.FileName)
             }
         }
@@ -66,11 +73,10 @@ function Process-InputFiles {
         throw "No valid .zip or .html files found in selection"
     }
     
-    # If we have mixed files or HTML files, use the new process-files.js
+    # Process mixed/multiple files
     if ($htmlFiles.Count -gt 0 -or $zipFiles.Count -gt 1) {
         Write-Host "Processing mixed/multiple files with process-files.js..." -ForegroundColor Cyan
         
-        # Check if process-files.js exists, if not fall back to process-zip.js for single zip
         if (Test-Path -Path ".\process-files.js") {
             $allFiles = $zipFiles + $htmlFiles
             & node .\process-files.js @allFiles
@@ -79,11 +85,11 @@ function Process-InputFiles {
                 Write-Host "Falling back to process-zip.js for single ZIP file..." -ForegroundColor Yellow
                 & node .\process-zip.js $zipFiles[0]
             } else {
-                throw "process-files.js not found. Cannot process multiple files or HTML files without it."
+                throw "process-files.js not found."
             }
         }
     } else {
-        # Single ZIP file - use existing process-zip.js
+        # Single ZIP file
         Write-Host "Processing single ZIP with process-zip.js..." -ForegroundColor Cyan
         & node .\process-zip.js $zipFiles[0]
     }
@@ -101,18 +107,13 @@ try {
         $InputPaths = $selected
     }
     
-    # Ensure InputPaths is always an array
-    if ($InputPaths -is [string]) {
-        $InputPaths = @($InputPaths)
-    }
+    if ($InputPaths -is [string]) { $InputPaths = @($InputPaths) }
     
-    # Check if we have any files
     if (-not $InputPaths -or $InputPaths.Count -eq 0) {
         Write-Warning 'No files provided. Exiting.'
         exit 1
     }
     
-    # Validate all files exist
     foreach ($path in $InputPaths) {
         if (-not (Test-Path -LiteralPath $path)) {
             throw "File not found: $path"
@@ -124,30 +125,26 @@ try {
         Write-Host "  - $path" -ForegroundColor Gray
     }
     
-    # Process the files
+    # 1. Process the files (Extracts to $BaseDir/unzipped)
     Process-InputFiles -files $InputPaths
     
-    # Run summarization (this should work regardless of input method)
+    # 2. Run summarization
     Write-Host "Generating summary..." -ForegroundColor Cyan
-    & node .\summarise.js
+    # Pass explicit paths to ensure it doesn't write to the read-only app directory
+    & node .\summarise.js --input-dir "$BaseDir\unzipped" --output "$BaseDir\summary.html"
     
-    # Verify output and open in default browser
-    $summary = Join-Path -Path $PSScriptRoot -ChildPath 'summary.html'
+    # 3. Verify output in the writable BaseDir
+    $summary = Join-Path -Path $BaseDir -ChildPath 'summary.html'
+    
     if (Test-Path -LiteralPath $summary) {
-        Write-Host 'Opening summary.html...' -ForegroundColor Green
+        Write-Host "Opening summary: $summary" -ForegroundColor Green
         Start-Process -FilePath $summary | Out-Null
         Write-Host 'Done.' -ForegroundColor Green
     } else {
-        throw 'summary.html was not generated.'
+        throw "summary.html was not generated at $summary"
     }
 }
 catch {
     Write-Error $_.Exception.Message
     exit 1
 }
-
-# Usage examples:
-# .\run-reporter.ps1                           # Browse for files (supports .zip and .html, multi-select)
-# .\run-reporter.ps1 -ZipOnly                  # Browse for ZIP only (single select, backward compatible)
-# .\run-reporter.ps1 -InputPaths "report.zip"  # Process specific ZIP file
-# .\run-reporter.ps1 -InputPaths @("report1.html", "report2.html", "test.zip")  # Process multiple files

@@ -9,7 +9,7 @@ if (process.argv.length < 3) {
 }
 
 const zipPath = process.argv[2];
-const unzipTo = path.join(__dirname, "unzipped");
+const unzipTo = path.join(process.env.BASE_DATA_PATH || __dirname, "unzipped");
 
 // 1. Clear previous contents
 if (fs.existsSync(unzipTo)) {

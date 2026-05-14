@@ -12,7 +12,7 @@ if (process.argv.length < 3) {
 
 // Accept optional: --outdir <dir>
 let argvIndex = 2;
-let workingDir = path.join(__dirname, "unzipped"); // default
+let workingDir = path.join(process.env.BASE_DATA_PATH || __dirname, "unzipped"); // default
 if (process.argv[2] === "--outdir") {
   if (!process.argv[3]) {
     console.error("❌ Missing value for --outdir");

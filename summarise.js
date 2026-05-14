@@ -791,7 +791,8 @@ function createSummaryHtml(collections) {
 
 /* ================================ 5) Main ================================ */
 function run() {
-  const unzippedPath = INPUT_DIR || path.join(__dirname, "unzipped");
+  const unzippedPath =
+    INPUT_DIR || path.join(process.env.BASE_DATA_PATH || __dirname, "unzipped");
   const reportPaths = findAllReports(unzippedPath);
   const summaries = [];
 
@@ -824,7 +825,9 @@ function run() {
   }
 
   const finalHtml = createSummaryHtml(summaries);
-  const outFile = OUTPUT_FILE || path.join(__dirname, "summary.html");
+  const outFile =
+    OUTPUT_FILE ||
+    path.join(process.env.BASE_DATA_PATH || __dirname, "summary.html");
   fs.writeFileSync(outFile, finalHtml, "utf-8");
   console.log(`✅ summary written to ${outFile}`);
 }
